@@ -14,7 +14,7 @@ class Events(commands.Cog):
         for guild in bot.guilds:
             for member in guild.members:
                 if await db.select_value(f'SELECT cash FROM earth_users WHERE member = {member.id}') is None:
-                    await db.execute_table(f'INSERT INTO earth_users VALUES ({member.id}, 0, 0, 0, 0)')
+                    await db.execute_table(f'INSERT INTO earth_users VALUES ({member.id}, 0, 0, 0, 0, 0)')
         print('Bot is ready!')
 
 def setup(Bot):

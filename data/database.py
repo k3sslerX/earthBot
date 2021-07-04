@@ -49,7 +49,7 @@ class Database:
         return await self.execute(sql, execute=True)
 
     async def create_users_table(self):
-        sql = 'CREATE TABLE IF NOT EXISTS earth_users (member BIGINT, cash INT, messages INT, hours INT, minutes INT)'
+        sql = 'CREATE TABLE IF NOT EXISTS earth_users (member BIGINT, cash INT, stones INT, messages INT, hours INT, minutes INT)'
         return await self.execute(sql, execute=True)
 
 db = Database()
