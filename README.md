@@ -1,1 +1,3 @@
-Режим вывода команд на экран (ECHO) включен.
+bot for dotSai
+
+Check it out: https://discord.gg/8quBFEpMf2
