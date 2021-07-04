@@ -1,3 +1,11 @@
+import discord
+
+async def get_nick(member: discord.Member):
+    if member.nick is None:
+        return member.name
+    else:
+        return member.nick
+
 DB_NAME = 'postgres'
 DB_USER = 'postgres'
 DB_HOST = 'localhost'
