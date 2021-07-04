@@ -17,5 +17,11 @@ class Events(commands.Cog):
                     await db.execute_table(f'INSERT INTO earth_users VALUES ({member.id}, 0, 0, 0, 0, 0)')
         print('Bot is ready!')
 
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        if message.guild is not None:
+            if message.guild.id == 607467399536705576:
+                await db.execute_table(f'UPDATE earth_users SET messages = messages + 1 WHERE member = {message.author.id}')
+
 def setup(Bot):
     Bot.add_cog(Events(Bot))

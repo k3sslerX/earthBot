@@ -37,12 +37,19 @@ class Economy(commands.Cog):
             await db.execute_table(f'UPDATE earth_users SET cash = cash + {amount} WHERE member = {member.id}')
             await ctx.send(f'{amount} коинов были выданы пользователю {member}')
 
+    @commands.command(aliases=['stones'])
+    @commands.has_any_role(703942596011229190, 857609646915059712)
+    async def __stones(self, ctx, member: discord.Member = None, amount: int = None):
+        if member is not None and amount is not None:
+            await db.execute_table(f'UPDATE earth_users SET stones = stones + {amount} WHERE member = {member.id}')
+            await ctx.send(f'{amount} камней были выданы пользователю {member}')
+
     @commands.command(aliases=['send', 'передать'])
     async def __send(self, ctx, member: discord.Member = None, amount: int = None):
         await ctx.message.delete()
         if ctx.channel.id != 856931259258372146 and ctx.channel.id != 857658033122836510:
             if member is not None and amount is not None:
-                if await db.select_value(f'SELECT cash FROM earth_users WHERE member = {ctx.author.id}') >= amount and amount > 25:
+                if await db.select_value(f'SELECT cash FROM earth_users WHERE member = {ctx.author.id}') >= amount and amount > 50 and member != ctx.author:
                     zero_comission = False
                     for role in ctx.author.roles:
                         if role.id in staff:
@@ -52,9 +59,9 @@ class Economy(commands.Cog):
                         new_amount = amount
 
                     if not zero_comission:
-                        embed = discord.Embed(title=f'Подтвердите перевод — {ctx.author}', description=f'Вы хотите передать __{new_amount} коинов__ **(включая комиссию 5%)** пользователю **{await get_nick(member)}**')
+                        embed = discord.Embed(title=f'Перевод — {ctx.author}', description=f'Вы действительно хотите передать __{new_amount} коинов__ **(включая комиссию 5%)** пользователю **{member.mention}**?')
                     else:
-                        embed = discord.Embed(title=f'Подтвердите перевод — {ctx.author}', description=f'Вы хотите передать __{new_amount} коинов__ пользователю **{await get_nick(member)}**')
+                        embed = discord.Embed(title=f'Перевод — {ctx.author}', description=f'Вы действительно хотите передать __{new_amount} коинов__ пользователю **{member.mention}**?')
                     embed.set_thumbnail(url=ctx.author.avatar_url)
                     message = await ctx.send(embed=embed)
                     await message.add_reaction('✅')
@@ -75,12 +82,12 @@ class Economy(commands.Cog):
                             await db.execute_table(f'UPDATE earth_users SET cash = cash + {new_amount} WHERE member = {member.id}')
                             await db.execute_table(f'UPDATE earth_users SET cash = cash - {new_amount} WHERE member = {ctx.author.id}')
                             if not zero_comission:
-                                embed = discord.Embed(title='Подтверждено!', description=f'{ctx.author.mention} успешно перевёл {new_amount} коинов пользователю {member.mention} (Включая комиссию 5%)')
+                                embed = discord.Embed(title=f'Перевод — {ctx.author}', description=f'{ctx.author.mention} успешно перевёл {new_amount} коинов пользователю {member.mention} (включая комиссию 5%)')
                                 embed.set_thumbnail(url=ctx.author.avatar_url)
                                 await message.edit(embed=embed)
                                 await message.clear_reactions()
                             else:
-                                embed = discord.Embed(title='Подтверждено!', description=f'{ctx.author.mention} успешно перевёл {new_amount} коинов пользователю {member.mention}')
+                                embed = discord.Embed(title=f'Перевод — {ctx.author}', description=f'{ctx.author.mention} успешно перевёл {new_amount} коинов пользователю {member.mention}')
                                 embed.set_thumbnail(url=ctx.author.avatar_url)
                                 await message.edit(embed=embed)
                                 await message.clear_reactions()
@@ -90,7 +97,7 @@ class Economy(commands.Cog):
                             embed.set_thumbnail(url=ctx.author.avatar_url)
                             await member.send(embed=embed)
                         if str(reaction.emoji) == '❌':
-                            embed = discord.Embed(title='Отказ!', description=f'{ctx.author.mention} отменил перевод!')
+                            embed = discord.Embed(title='Перевод — {ctx.author}', description=f'{ctx.author.mention} отменил перевод!')
                             embed.set_thumbnail(url=ctx.author.avatar_url)
                             await message.edit(embed=embed)
                             await message.clear_reactions()
