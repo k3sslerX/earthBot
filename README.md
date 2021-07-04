@@ -1,3 +1,3 @@
-bot for dotSai
+**bot for *dotSai***
 
-Check it out: https://discord.gg/8quBFEpMf2
+**Check it out:** [click](https://discord.gg/8quBFEpMf2)
