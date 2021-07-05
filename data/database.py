@@ -52,4 +52,20 @@ class Database:
         sql = 'CREATE TABLE IF NOT EXISTS earth_users (member BIGINT, cash INT, stones INT, messages INT, hours INT, minutes INT)'
         return await self.execute(sql, execute=True)
 
+    async def create_privates_table(self):
+        sql = 'CREATE TABLE IF NOT EXISTS earth_private_roles (role BIGINT, paided TEXT, owner BIGINT)'
+        return await self.execute(sql, execute=True)
+
+    async def create_market_table(self):
+        sql = 'CREATE TABLE IF NOT EXISTS earth_market (role BIGINT, price INT, owner BIGINT)'
+        return await self.execute(sql, execute=True)
+
+    async def create_inventory_table(self):
+        sql = 'CREATE TABLE IF NOT EXISTS earth_inventory (role BIGINT, member BIGINT)'
+        return await self.execute(sql, execute=True)
+    
+    async def create_purchases_table(self):
+        sql = 'CREATE TABLE IF NOT EXISTS earth_purchases (role BIGINT, purchased TEXT, member BIGINT)'
+        return await self.execute(sql, execute=True)
+
 db = Database()
