@@ -28,14 +28,13 @@ class PrivateRoles(commands.Cog):
             if await db.select_value(f'SELECT role FROM earth_private_roles WHERE owner = {ctx.author.id}') is not None:
                 role_id = await db.select_value(f'SELECT role FROM earth_private_roles WHERE owner = {ctx.author.id}')
                 role = discord.utils.get(ctx.guild.roles, id=role_id)
-                paided_str = await db.select_value(f'SELECT paided FROM private_roles WHERE owner = {ctx.author.id}')
+                paided_str = await db.select_value(f'SELECT paided FROM earth_private_roles WHERE owner = {ctx.author.id}')
                 inrole = 0
                 for member in ctx.guild.members:
                     if role in member.roles:
                         inrole += 1
                 paided = datetime.date(year=int(paided_str[0:4]), month=int(paided_str[4:6]), day=int(paided_str[6:8]))
                 embed = discord.Embed(description=f'**Информация о личной роли — {await get_nick(ctx.author)}**\n{role.mention}')
-                embed.set_footer(text=f'Request by {await get_nick(ctx.author)}', icon_url=ctx.author.avatar_url)
                 embed.set_thumbnail(url=ctx.author.avatar_url)
                 embed.add_field(name='Название:', value=f'```{role}```', inline=False)
                 embed.add_field(name='ID:', value=f'```{role.id}```')
@@ -55,7 +54,7 @@ class PrivateRoles(commands.Cog):
             role_id = await db.select_value(f'SELECT role FROM earth_private_roles WHERE owner = {ctx.author.id}')
             if role_id is not None and colour is not None:
                 role = discord.utils.get(ctx.guild.roles, id=role_id)
-                embed = discord.Embed(title='Подтвердите изменения — {await get_nick(ctx.author)}', description=f'**Текущий цвет:** __{role.colour}__\n**Новый цвет:** __{colour}__\nВы заплатите: 0 коинов')
+                embed = discord.Embed(title=f'Подтвердите изменения — {await get_nick(ctx.author)}', description=f'**Текущий цвет:** __{role.colour}__\n**Новый цвет:** __{colour}__\nВы заплатите: 0 коинов')
                 embed.set_thumbnail(url=ctx.author.avatar_url)
                 message = await ctx.send(embed=embed)
                 await message.add_reaction('✅')
@@ -211,16 +210,16 @@ class PrivateRoles(commands.Cog):
             if len(roles) % 5 == 0:
                 lists -= 1
             for i in range(lists):
-                embed.append(discord.Embed(title=f'Магазин ролей'))
+                embed.append(discord.Embed(title=f'Магазин ролей — {await get_nick(ctx.author)}'))
                 embed[i].set_thumbnail(url=ctx.guild.icon_url)
                 embed[i].set_footer(text=f'Страница {i + 1}/{lists}')
             for i in range(len(roles)):
                 role = discord.utils.get(ctx.guild.roles, id=roles[i])
                 if i < (5 * (page + 1)):
-                    embed[page].add_field(name=f'ᅠ', value=f'{i + 1}) {role.mention}\nЦена: {prices[i]}\nПродавец: <@{owners[i]}>', inline=False)
+                    embed[page].add_field(name=f'ᅠ', value=f'**{i + 1}.** {role.mention}\n**Цена:** __{prices[i]}__\n**Продавец:** <@{owners[i]}>', inline=False)
                 else:
                     page += 1
-                    embed[page].add_field(name=f'ᅠ', value=f'{i + 1}) {role.mention}\nЦена: {prices[i]}\nПродавец: <@{owners[i]}>', inline=False)
+                    embed[page].add_field(name=f'ᅠ', value=f'**{i + 1}.** {role.mention}\n**Цена:** __{prices[i]}__\n**Продавец:** <@{owners[i]}>', inline=False)
             if len(embed) >= 1:
                 message = await ctx.send(embed=embed[0])
                 page = Paginator(bot, message, only=ctx.author, use_more=False, embeds=embed, timeout=30, footer=False, use_exit=True, exit_reaction='❌')
@@ -430,12 +429,12 @@ class PrivateRoles(commands.Cog):
         if ctx.channel.id != 856931259258372146 and ctx.channel.id != 857658033122836510:
             if colour is None or name is None:
                 embed = discord.Embed(title='Что-то пошло не так! Попробуйте использовать эту команду так:',
-                description=f'`!создатьроль #COLOUR *name*`\n\n**Пример:**\n`!createRole #ff0000 крутая роль!`')
+                description=f'`!создатьроль #COLOUR *name*`\n\n**Пример:**\n`!создатьроль #ff0000 крутая роль!`')
                 embed.set_thumbnail(url=ctx.author.avatar_url)
                 await ctx.send(embed=embed)
             else:
                 cash = await db.select_value(f'SELECT cash FROM earth_users WHERE member = {ctx.author.id}')
-                if await db.select_value(f'SELECT role FROM earth_private_roles WHERE owner = {ctx.author.id}') is None:
+                if len(await db.select_list(f'SELECT role FROM earth_private_roles WHERE owner = {ctx.author.id}')) < 2:
                     if cash >= 5000:
                         embed = discord.Embed(title=f'Покупка личной роли — {await get_nick(ctx.author)}',
                         description=f'**Название:** `{name}`\n**Цвет:** `{colour}` \nВаш текущий баланс: {cash}\nВаш баланс после покупки: {cash - 5000}')
@@ -464,7 +463,10 @@ class PrivateRoles(commands.Cog):
                                 ends.remove('-')
                                 ends.remove('-')
                                 end = ''.join(ends)
+                                support = discord.utils.get(ctx.guild.roles, id=861604082073862186)
+                                position = support.position + 1
                                 role = await ctx.guild.create_role(name=name, colour=colour)
+                                await role.edit(position=position)
                                 await ctx.author.add_roles(role)
                                 await db.execute_table(f'INSERT INTO earth_private_roles VALUES ({role.id}, {end}, {ctx.author.id})')
                                 await db.execute_table(f'UPDATE earth_users SET cash = cash - 5000 WHERE member = {ctx.author.id}')
@@ -479,11 +481,11 @@ class PrivateRoles(commands.Cog):
                                 await message.edit(embed=embed)
                     else:
                         message = await ctx.send(f'{ctx.author.mention}, у вас недостаточно коинов!')
-                        asyncio.sleep(5)
+                        await asyncio.sleep(5)
                         await message.delete()
                 else:
-                    message = await ctx.send(f'{ctx.author.mention}, у вас уже есть личная роль!')
-                    asyncio.sleep(5)
+                    message = await ctx.send(f'{ctx.author.mention}, лимит личных ролей превышен!')
+                    await asyncio.sleep(5)
                     await message.delete()
 
 
