@@ -34,7 +34,7 @@ class PrivateRoles(commands.Cog):
                     if role in member.roles:
                         inrole += 1
                 paided = datetime.date(year=int(paided_str[0:4]), month=int(paided_str[4:6]), day=int(paided_str[6:8]))
-                embed = discord.Embed(description=f'**Information about private role**\n{role.mention}')
+                embed = discord.Embed(description=f'**Информация о личной роли — {await get_nick(ctx.author)}**\n{role.mention}')
                 embed.set_footer(text=f'Request by {await get_nick(ctx.author)}', icon_url=ctx.author.avatar_url)
                 embed.set_thumbnail(url=ctx.author.avatar_url)
                 embed.add_field(name='Название:', value=f'```{role}```', inline=False)
@@ -55,7 +55,7 @@ class PrivateRoles(commands.Cog):
             role_id = await db.select_value(f'SELECT role FROM earth_private_roles WHERE owner = {ctx.author.id}')
             if role_id is not None and colour is not None:
                 role = discord.utils.get(ctx.guild.roles, id=role_id)
-                embed = discord.Embed(title='Подтвердите изменения', description=f'**Текущий цвет:** __{role.colour}__\n**Новый цвет:** __{colour}__\nВы заплатите: 0 коинов')
+                embed = discord.Embed(title='Подтвердите изменения — {await get_nick(ctx.author)}', description=f'**Текущий цвет:** __{role.colour}__\n**Новый цвет:** __{colour}__\nВы заплатите: 0 коинов')
                 embed.set_thumbnail(url=ctx.author.avatar_url)
                 message = await ctx.send(embed=embed)
                 await message.add_reaction('✅')
@@ -68,19 +68,19 @@ class PrivateRoles(commands.Cog):
                     reaction, user = await bot.wait_for('reaction_add', timeout=30.0, check=check)
 
                 except asyncio.TimeoutError:
-                    embed = discord.Embed(title=f'Подтвердите изменения', description='Окно было закрыто из-за неактивности')
+                    embed = discord.Embed(title=f'Подтвердите изменения — {await get_nick(ctx.author)}', description='Окно было закрыто из-за неактивности')
                     embed.set_thumbnail(url=ctx.author.avatar_url)
                     await message.clear_reactions()
                     await message.edit(embed=embed)
                 else:
                     if str(reaction.emoji) == '✅':
                         await role.edit(colour=colour)
-                        embed = discord.Embed(title=f'Подтвердите изменения', description=f'{ctx.author.mention}, вы успешно изменили цвет вашей роли!\nНовый цвет: __{colour}__\nПревью: {role.mention}')
+                        embed = discord.Embed(title=f'Подтвердите изменения — {await get_nick(ctx.author)}', description=f'{ctx.author.mention}, вы успешно изменили цвет вашей роли!\nНовый цвет: __{colour}__\nПревью: {role.mention}')
                         embed.set_thumbnail(url=ctx.author.avatar_url)
                         await message.clear_reactions()
                         await message.edit(embed=embed)
                     elif str(reaction.emoji) == '❌':
-                        embed = discord.Embed(title=f'Подтвердите изменения', description=f'{ctx.author.mention} отменил изменения')
+                        embed = discord.Embed(title=f'Подтвердите изменения — {await get_nick(ctx.author)}', description=f'{ctx.author.mention} отменил изменения')
                         embed.set_thumbnail(url=ctx.author.avatar_url)
                         await message.clear_reactions()
                         await message.edit(embed=embed)
@@ -93,7 +93,7 @@ class PrivateRoles(commands.Cog):
             role_id = await db.select_value(f'SELECT role FROM earth_private_roles WHERE owner = {ctx.author.id}')
             if role_id is not None and name is not None:
                 role = discord.utils.get(ctx.guild.roles, id=role_id)
-                embed = discord.Embed(title='Подтвердите изменения', description=f'**Текущее название:** __{role.name}__\n**Новое назвние:** __{name}__\nВы заплатите: 200 коинов')
+                embed = discord.Embed(title=f'Подтвердите изменения — {await get_nick(ctx.author)}', description=f'**Текущее название:** __{role.name}__\n**Новое назвние:** __{name}__\nВы заплатите: 200 коинов')
                 embed.set_thumbnail(url=ctx.author.avatar_url)
                 message = await ctx.send(embed=embed)
                 await message.add_reaction('✅')
@@ -106,26 +106,26 @@ class PrivateRoles(commands.Cog):
                     reaction, user = await bot.wait_for('reaction_add', timeout=30.0, check=check)
 
                 except asyncio.TimeoutError:
-                    embed = discord.Embed(title=f'Подтвердите изменения', description='Окно было закрыто из-за неактивности')
+                    embed = discord.Embed(title=f'Подтвердите изменения — {await get_nick(ctx.author)}', description='Окно было закрыто из-за неактивности')
                     embed.set_thumbnail(url=ctx.author.avatar_url)
                     await message.clear_reactions()
                     await message.edit(embed=embed)
                 else:
                     if str(reaction.emoji) == '✅':
                         if await db.select_value(f'SELECT cash FROM earth_users WHERE member = {ctx.author.id}') < 200:
-                            embed = discord.Embed(title=f'Подтвердите изменения', description=f'{ctx.author.mention}, у вас нет 200 коинов для подтверждения изменений!')
+                            embed = discord.Embed(title=f'Подтвердите изменения — {await get_nick(ctx.author)}', description=f'{ctx.author.mention}, у вас нет 200 коинов для подтверждения изменений!')
                             embed.set_thumbnail(url=ctx.author.avatar_url)
                             await message.clear_reactions()
                             await message.edit(embed=embed)
                         else:
                             await db.execute_table(f'UPDATE earth_users SET cash = cash - 200 WHERE member = {ctx.author.id}')
                             await role.edit(name=name)
-                            embed = discord.Embed(title=f'Подтвердите изменения', description=f'{ctx.author.mention}, вы успешно изменили название вашей роли! Новое название: __{name}__\nПревью: {role.mention}')
+                            embed = discord.Embed(title=f'Подтвердите изменения — {await get_nick(ctx.author)}', description=f'{ctx.author.mention}, вы успешно изменили название вашей роли! Новое название: __{name}__\nПревью: {role.mention}')
                             embed.set_thumbnail(url=ctx.author.avatar_url)
                             await message.clear_reactions()
                             await message.edit(embed=embed)
                     elif str(reaction.emoji) == '❌':
-                        embed = discord.Embed(title=f'Подтвердите изменения', description=f'{ctx.author.mention} отменил изменения')
+                        embed = discord.Embed(title=f'Подтвердите изменения — {await get_nick(ctx.author)}', description=f'{ctx.author.mention} отменил изменения')
                         embed.set_thumbnail(url=ctx.author.avatar_url)
                         await message.clear_reactions()
                         await message.edit(embed=embed)
@@ -149,7 +149,7 @@ class PrivateRoles(commands.Cog):
             else:
                 role_id = await db.select_value(f'SELECT role FROM earth_private_roles WHERE owner = {ctx.author.id}')
                 role = discord.utils.get(ctx.guild.roles, id=role_id)
-                embed = discord.Embed(title='Выставить роль на продажу', description=f'Вы действительно хотите выставить вашу роль {role.mention} на продажу за __{price}__ коинов. Вы заплатите 200 коинов')
+                embed = discord.Embed(title=f'Выставить роль на продажу — {await get_nick(ctx.author)}', description=f'Вы действительно хотите выставить вашу роль {role.mention} на продажу за __{price}__ коинов. Вы заплатите 200 коинов')
                 embed.set_thumbnail(url=ctx.author.avatar_url)
                 message = await ctx.send(embed=embed)
                 await message.add_reaction('✅')
@@ -162,7 +162,7 @@ class PrivateRoles(commands.Cog):
                     reaction, user = await bot.wait_for('reaction_add', timeout=30.0, check=check)
 
                 except asyncio.TimeoutError:
-                    embed = discord.Embed(title=f'Выставить роль на продажу', description='Окно было закрыто из-за неактивности')
+                    embed = discord.Embed(title=f'Выставить роль на продажу — {await get_nick(ctx.author)}', description='Окно было закрыто из-за неактивности')
                     embed.set_thumbnail(url=ctx.author.avatar_url)
                     await message.clear_reactions()
                     await message.edit(embed=embed)
@@ -170,24 +170,24 @@ class PrivateRoles(commands.Cog):
                     if str(reaction.emoji) == '✅':
                         if await db.select_value(f'SELECT price FROM earth_market WHERE role = {role_id}') is None:
                             if await db.select_value(f'SELECT cash FROM earth_users WHERE member = {ctx.author.id}') < 200:
-                                embed = discord.Embed(title=f'Выставить роль на проодажу', description=f'{ctx.author.mention}, у вас нет 200 коинов для подтверждения!')
+                                embed = discord.Embed(title=f'Выставить роль на проодажу — {await get_nick(ctx.author)}', description=f'{ctx.author.mention}, у вас нет 200 коинов для подтверждения!')
                                 embed.set_thumbnail(url=ctx.author.avatar_url)
                                 await message.clear_reactions()
                                 await message.edit(embed=embed)
                             else:
                                 await db.execute_table(f'UPDATE earth_users SET cash = cash - 200 WHERE member = {ctx.author.id}')
                                 await db.execute_table(f'INSERT INTO earth_market VALUES ({role_id}, {price}, {ctx.author.id})')
-                                embed = discord.Embed(title=f'Выставить роль на продажу', description=f'{ctx.author.mention}, вы успешно выставили роль {role.mention} на !магазин за {price} коинов и заплатили за это 200 коинов')
+                                embed = discord.Embed(title=f'Выставить роль на продажу — {await get_nick(ctx.author)}', description=f'{ctx.author.mention}, вы успешно выставили роль {role.mention} на !магазин за {price} коинов и заплатили за это 200 коинов')
                                 embed.set_thumbnail(url=ctx.author.avatar_url)
                                 await message.clear_reactions()
                                 await message.edit(embed=embed)
                         else:
-                            embed = discord.Embed(title=f'Выставить роль на продажу', description=f'{ctx.author.mention}, ваша роль {role.mention} уже есть в !магазин')
+                            embed = discord.Embed(title=f'Выставить роль на продажу — {await get_nick(ctx.author)}', description=f'{ctx.author.mention}, ваша роль {role.mention} уже есть в !магазин')
                             embed.set_thumbnail(url=ctx.author.avatar_url)
                             await message.clear_reactions()
                             await message.edit(embed=embed)
                     elif str(reaction.emoji) == '❌':
-                        embed = discord.Embed(title=f'Выставить роль на продажу', description=f'{ctx.author.mention} отменил выставление!')
+                        embed = discord.Embed(title=f'Выставить роль на продажу — {await get_nick(ctx.author)}', description=f'{ctx.author.mention} отменил выставление!')
                         embed.set_thumbnail(url=ctx.author.avatar_url)
                         await message.clear_reactions()
                         await message.edit(embed=embed)
@@ -239,7 +239,7 @@ class PrivateRoles(commands.Cog):
             role_id = await db.select_value(f'SELECT role FROM earth_private_roles WHERE owner = {ctx.author.id}')
             if role_id is not None:
                 if await db.select_value(f'SELECT price FROM earth_market WHERE role = {role_id}') is not None:
-                    embed = discord.Embed(title='Снять с продажи', description=f'Вы действительно хотите снять с продажи вашу роль <@&{role_id}>?')
+                    embed = discord.Embed(title=f'Снять с продажи — {await get_nick(ctx.author)}', description=f'Вы действительно хотите снять с продажи вашу роль <@&{role_id}>?')
                     embed.set_thumbnail(url=ctx.author.avatar_url)
                     message = await ctx.send(embed=embed)
                     await message.add_reaction('✅')
@@ -252,24 +252,24 @@ class PrivateRoles(commands.Cog):
                         reaction, user = await bot.wait_for('reaction_add', timeout=30.0, check=check)
 
                     except asyncio.TimeoutError:
-                        embed = discord.Embed(title=f'Снять с продажи', description='Окно закрыто из-за неактивности')
+                        embed = discord.Embed(title=f'Снять с продажи — {await get_nick(ctx.author)}', description='Окно закрыто из-за неактивности')
                         embed.set_thumbnail(url=ctx.author.avatar_url)
                         await message.clear_reactions()
                         await message.edit(embed=embed)
                     else:
                         if str(reaction.emoji) == '✅':
                             await db.execute_table(f'DELETE FROM earth_market WHERE role = {role_id}')
-                            embed = discord.Embed(title='Снятие с продажи', description=f'{ctx.author.mention}, вы успешно сняли вашу роль <@&{role_id}> с продажи!')
+                            embed = discord.Embed(title=f'Снять с продажи — {await get_nick(ctx.author)}', description=f'{ctx.author.mention}, вы успешно сняли вашу роль <@&{role_id}> с продажи!')
                             embed.set_thumbnail(url=ctx.author.avatar_url)
                             await message.clear_reactions()
                             await message.edit(embed=embed)
                         elif str(reaction.emoji) == '❌':
-                            embed = discord.Embed(title='Снятие с продажи', description=f'{ctx.author.mention}, вы отменили снятие!')
+                            embed = discord.Embed(title=f'Снять с продажи — {await get_nick(ctx.author)}', description=f'{ctx.author.mention}, вы отменили снятие!')
                             embed.set_thumbnail(url=ctx.author.avatar_url)
                             await message.clear_reactions()
                             await message.edit(embed=embed)
                 else:
-                    embed = discord.Embed(title='Снятие с продажи', description=f'{ctx.author.mention}, вашей роли нет в магазине!')
+                    embed = discord.Embed(title=f'Снять с продажи — {await get_nick(ctx.author)}', description=f'{ctx.author.mention}, вашей роли нет в магазине!')
                     embed.set_thumbnail(url=ctx.author.avatar_url)
                     await ctx.send(embed=embed)
             else:
@@ -437,7 +437,7 @@ class PrivateRoles(commands.Cog):
                 cash = await db.select_value(f'SELECT cash FROM earth_users WHERE member = {ctx.author.id}')
                 if await db.select_value(f'SELECT role FROM earth_private_roles WHERE owner = {ctx.author.id}') is None:
                     if cash >= 5000:
-                        embed = discord.Embed(title='Покупка личной роли',
+                        embed = discord.Embed(title=f'Покупка личной роли — {await get_nick(ctx.author)}',
                         description=f'**Название:** `{name}`\n**Цвет:** `{colour}` \nВаш текущий баланс: {cash}\nВаш баланс после покупки: {cash - 5000}')
                         embed.set_footer(text='Вы сможете изменять название и цвет роли после покупки')
                         embed.set_thumbnail(url=ctx.author.avatar_url)
@@ -452,7 +452,7 @@ class PrivateRoles(commands.Cog):
                             reaction, user = await bot.wait_for('reaction_add', timeout=30.0, check=check)
 
                         except asyncio.TimeoutError:
-                            embed = discord.Embed(title=f'Покупка личной роли', description='Окно было закрыто из-за неактивности')
+                            embed = discord.Embed(title=f'Покупка личной роли — {await get_nick(ctx.author)}', description='Окно было закрыто из-за неактивности')
                             embed.set_thumbnail(url=ctx.author.avatar_url)
                             await message.clear_reactions()
                             await message.edit(embed=embed)
@@ -468,12 +468,12 @@ class PrivateRoles(commands.Cog):
                                 await ctx.author.add_roles(role)
                                 await db.execute_table(f'INSERT INTO earth_private_roles VALUES ({role.id}, {end}, {ctx.author.id})')
                                 await db.execute_table(f'UPDATE earth_users SET cash = cash - 5000 WHERE member = {ctx.author.id}')
-                                embed = discord.Embed(title='Покупка личной роли', description=f'{ctx.author.mention}, вы успешно приобрели личную роль {role.mention}!\n\n```Роль была оплачена на 30 дней, Для большей информации используйте !мояроль```')
+                                embed = discord.Embed(title=f'Покупка личной роли — {await get_nick(ctx.author)}', description=f'{ctx.author.mention}, вы успешно приобрели личную роль {role.mention}!\n\n```Роль была оплачена на 30 дней, Для большей информации используйте !мояроль```')
                                 embed.set_thumbnail(url=ctx.author.avatar_url)
                                 await message.clear_reactions()
                                 await message.edit(embed=embed)
                             elif str(reaction.emoji) == '❌':
-                                embed = discord.Embed(title='Покупка личной роли', description=f'{ctx.author.mention}, вы отменили покупку!')
+                                embed = discord.Embed(title=f'Покупка личной роли — {await get_nick(ctx.author)}', description=f'{ctx.author.mention}, вы отменили покупку!')
                                 embed.set_thumbnail(url=ctx.author.avatar_url)
                                 await message.clear_reactions()
                                 await message.edit(embed=embed)

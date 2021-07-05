@@ -57,14 +57,14 @@ class Economy(commands.Cog):
                 await ctx.send(embed=embed)
 
     @commands.command(aliases=['give'])
-    @commands.has_any_role(703942596011229190, 857609646915059712)
+    @commands.has_role(857609646915059712)
     async def __give(self, ctx, member: discord.Member = None, amount: int = None):
         if member is not None and amount is not None:
             await db.execute_table(f'UPDATE earth_users SET cash = cash + {amount} WHERE member = {member.id}')
             await ctx.send(f'{amount} коинов были выданы пользователю {member}')
 
     @commands.command(aliases=['stones'])
-    @commands.has_any_role(703942596011229190, 857609646915059712)
+    @commands.has_role(857609646915059712)
     async def __stones(self, ctx, member: discord.Member = None, amount: int = None):
         if member is not None and amount is not None:
             await db.execute_table(f'UPDATE earth_users SET stones = stones + {amount} WHERE member = {member.id}')
