@@ -12,6 +12,7 @@ class Events(commands.Cog):
     async def on_ready(self):
         await db.create_users_table()
         await db.create_privates_table()
+        await db.create_market_table()
         await db.create_purchases_table()
         await db.create_inventory_table()
         for guild in bot.guilds:

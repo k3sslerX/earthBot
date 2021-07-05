@@ -6,6 +6,8 @@ from discord.ext import commands
 from data.database import db
 from data.config import staff
 import asyncio
+from discord.ext.commands.cooldowns import BucketType
+import random
 
 class Economy(commands.Cog):
 
@@ -29,6 +31,30 @@ class Economy(commands.Cog):
             embed.add_field(name='• Камни:', value=f'```{stones}```')
             embed.set_thumbnail(url=member.avatar_url)
             await ctx.send(embed=embed)
+
+    @commands.command(aliases=['награда', 'daily'])
+    @commands.cooldown(1, 43200, BucketType.member)
+    async def __daily(self, ctx):
+        await ctx.message.delete()
+        if ctx.channel.id != 856931259258372146 and ctx.channel.id != 857658033122836510:
+            reward = random.randint(20, 100)
+            await db.execute_table(f'UPDATE earth_users SET cash = cash + {reward} WHERE member = {ctx.author.id}')
+            embed = discord.Embed(description=f'{ctx.author.mention}, вы забрали награду в размере {reward} коинов. Возвращайтесь за новой через 12 часов')
+            embed.set_thumbnail(url=ctx.author.avatar_url)
+            await ctx.send(embed=embed)
+
+    @__daily.error
+    async def daily_error(self, ctx, error):
+        if isinstance(error, commands.CommandOnCooldown):
+            if ctx.channel.id != 856931259258372146 and ctx.channel.id != 857658033122836510:
+                hours = round(error.retry_after // 3600)
+                minutes = round((error.retry_after - hours * 3600) // 60)
+                if hours > 0:
+                    embed = discord.Embed(description=f'{ctx.author.mention}, вы уже забрали ежедневную награду. Возвращайтесь через {hours} часов {minutes} минут')
+                else:
+                    embed = discord.Embed(description=f'{ctx.author.mention}, вы уже забрали ежедневную награду. Возвращайтесь через {minutes} минут')
+                embed.set_thumbnail(url=ctx.author.avatar_url)
+                await ctx.send(embed=embed)
 
     @commands.command(aliases=['give'])
     @commands.has_any_role(703942596011229190, 857609646915059712)
