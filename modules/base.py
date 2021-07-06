@@ -48,7 +48,7 @@ class Base(commands.Cog):
                     else:
                         paided_str = await db.select_value(f'SELECT paided FROM earth_private_rooms WHERE owner = {ctx.author.id}')
                         paided = datetime.date(year=int(paided_str[0:4]), month=int(paided_str[4:6]), day=int(paided_str[6:8]))
-                    embed.add_field(name='Оплачна до:', value=f'```{paided}```')
+                    embed.add_field(name='Оплачена до:', value=f'```{paided}```')
                     if private:
                         if await db.select_value(f'SELECT price FROM earth_market WHERE role = {role.id}') is not None:
                             price = await db.select_value(f'SELECT price FROM earth_market WHERE role = {role.id}')
