@@ -26,7 +26,7 @@ class Economy(commands.Cog):
         if ctx.channel.id != 856931259258372146 and ctx.channel.id != 857658033122836510:
             cash = await db.select_value(f'SELECT cash FROM earth_users WHERE member = {member.id}')
             stones = await db.select_value(f'SELECT stones FROM earth_users WHERE member = {member.id}')
-            embed = discord.Embed(title=f'Баланс пользователя — {await get_nick(member)}')
+            embed = discord.Embed(title=f'Баланс пользователя — {await get_nick(member)}', color=discord.Colour(0x36393E))
             embed.add_field(name='• Коины:', value=f'```{cash}```')
             embed.add_field(name='• Камни:', value=f'```{stones}```')
             embed.set_thumbnail(url=member.avatar_url)
@@ -39,7 +39,7 @@ class Economy(commands.Cog):
         if ctx.channel.id != 856931259258372146 and ctx.channel.id != 857658033122836510:
             reward = random.randint(20, 100)
             await db.execute_table(f'UPDATE earth_users SET cash = cash + {reward} WHERE member = {ctx.author.id}')
-            embed = discord.Embed(title=f'Ежедневная награда — {await get_nick(ctx.author)}', description=f'{ctx.author.mention}, вы **забрали** награду в размере **{reward}** {COINS}. Возвращайтесь за новой через **12 часов**')
+            embed = discord.Embed(title=f'Ежедневная награда — {await get_nick(ctx.author)}', description=f'{ctx.author.mention}, вы **забрали** награду в размере **{reward}** {COINS}. Возвращайтесь за новой через **12 часов**', color=discord.Colour(0x36393E))
             embed.set_thumbnail(url=ctx.author.avatar_url)
             await ctx.send(embed=embed)
 
@@ -50,9 +50,9 @@ class Economy(commands.Cog):
                 hours = round(error.retry_after // 3600)
                 minutes = round((error.retry_after - hours * 3600) // 60)
                 if hours > 0:
-                    embed = discord.Embed(title=f'Ежедневная награда — {await get_nick(ctx.author)}', description=f'{ctx.author.mention}, вы **уже забрали** ежедневную награду. Возвращайтесь через **{hours} часов {minutes} минут**')
+                    embed = discord.Embed(title=f'Ежедневная награда — {await get_nick(ctx.author)}', description=f'{ctx.author.mention}, вы **уже забрали** ежедневную награду. Возвращайтесь через **{hours} часов {minutes} минут**', color=discord.Colour(0x36393E))
                 else:
-                    embed = discord.Embed(title=f'Ежедневная награда — {await get_nick(ctx.author)}', description=f'{ctx.author.mention}, вы **уже** забрали ежедневную награду. Возвращайтесь через **{minutes} минут**')
+                    embed = discord.Embed(title=f'Ежедневная награда — {await get_nick(ctx.author)}', description=f'{ctx.author.mention}, вы **уже** забрали ежедневную награду. Возвращайтесь через **{minutes} минут**', color=discord.Colour(0x36393E))
                 embed.set_thumbnail(url=ctx.author.avatar_url)
                 await ctx.send(embed=embed)
 
@@ -85,9 +85,9 @@ class Economy(commands.Cog):
                         new_amount = amount
 
                     if not zero_comission:
-                        embed = discord.Embed(title=f'Перевод — {ctx.author}', description=f'Вы действительно хотите передать __{new_amount} {COINS}__ **(включая комиссию 5%)** пользователю **{member.mention}**?')
+                        embed = discord.Embed(title=f'Перевод — {ctx.author}', description=f'Вы действительно хотите передать __{new_amount} {COINS}__ **(включая комиссию 5%)** пользователю **{member.mention}**?', color=discord.Colour(0x36393E))
                     else:
-                        embed = discord.Embed(title=f'Перевод — {ctx.author}', description=f'Вы действительно хотите передать __{new_amount} {COINS}__ пользователю **{member.mention}**?')
+                        embed = discord.Embed(title=f'Перевод — {ctx.author}', description=f'Вы действительно хотите передать __{new_amount} {COINS}__ пользователю **{member.mention}**?', color=discord.Colour(0x36393E))
                     embed.set_thumbnail(url=ctx.author.avatar_url)
                     message = await ctx.send(embed=embed)
                     await message.add_reaction('✅')
@@ -99,7 +99,7 @@ class Economy(commands.Cog):
                     try:
                         reaction, user = await bot.wait_for('reaction_add', check=check, timeout=30.0)
                     except asyncio.TimeoutError:
-                        embed = discord.Embed(title='Отказ!', description='Окно было закрыто из-за неактивности')
+                        embed = discord.Embed(title='Отказ!', description='Окно было закрыто из-за неактивности', color=discord.Colour(0x36393E))
                         embed.set_thumbnail(url=ctx.author.avatar_url)
                         await message.edit(embed=embed)
                         await message.clear_reactions()
@@ -108,22 +108,22 @@ class Economy(commands.Cog):
                             await db.execute_table(f'UPDATE earth_users SET cash = cash + {new_amount} WHERE member = {member.id}')
                             await db.execute_table(f'UPDATE earth_users SET cash = cash - {new_amount} WHERE member = {ctx.author.id}')
                             if not zero_comission:
-                                embed = discord.Embed(title=f'Перевод — {ctx.author}', description=f'{ctx.author.mention} успешно перевёл {new_amount} {COINS} пользователю {member.mention} (включая комиссию 5%)')
+                                embed = discord.Embed(title=f'Перевод — {ctx.author}', description=f'{ctx.author.mention} успешно перевёл {new_amount} {COINS} пользователю {member.mention} (включая комиссию 5%)', color=discord.Colour(0x36393E))
                                 embed.set_thumbnail(url=ctx.author.avatar_url)
                                 await message.edit(embed=embed)
                                 await message.clear_reactions()
                             else:
-                                embed = discord.Embed(title=f'Перевод — {ctx.author}', description=f'{ctx.author.mention} успешно перевёл {new_amount} {COINS} пользователю {member.mention}')
+                                embed = discord.Embed(title=f'Перевод — {ctx.author}', description=f'{ctx.author.mention} успешно перевёл {new_amount} {COINS} пользователю {member.mention}', color=discord.Colour(0x36393E))
                                 embed.set_thumbnail(url=ctx.author.avatar_url)
                                 await message.edit(embed=embed)
                                 await message.clear_reactions()
-                            embed = discord.Embed(title='Вам отправили коины!')
+                            embed = discord.Embed(title='Вам отправили коины!', color=discord.Colour(0x36393E))
                             embed.add_field(name='Отправитель:', value=f'```{await get_nick(ctx.author)} — {ctx.author}```')
                             embed.add_field(name='Сумма:', value=f'```{new_amount} коинов```')
                             embed.set_thumbnail(url=ctx.author.avatar_url)
                             await member.send(embed=embed)
                         if str(reaction.emoji) == '❌':
-                            embed = discord.Embed(title=f'Перевод — {ctx.author}', description=f'{ctx.author.mention} отменил перевод!')
+                            embed = discord.Embed(title=f'Перевод — {ctx.author}', description=f'{ctx.author.mention} отменил перевод!', color=discord.Colour(0x36393E))
                             embed.set_thumbnail(url=ctx.author.avatar_url)
                             await message.edit(embed=embed)
                             await message.clear_reactions()

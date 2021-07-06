@@ -1,4 +1,5 @@
 import discord
+from discord import colour
 from discord.ext import commands
 from data.database import db
 from data.config import get_nick
@@ -31,7 +32,7 @@ class Base(commands.Cog):
                         owner = await db.select_value(f'SELECT owner FROM earth_private_roles WHERE role = {role.id}')
                     else:
                         owner = await db.select_value(f'SELECT owner FROM earth_private_rooms WHERE role = {role.id}')
-                    embed = discord.Embed(title=f'Информация о роли  — {await get_nick(ctx.author)}', description=f'**Роль:** {role.mention}\n**Владелец:** <@{owner}>')
+                    embed = discord.Embed(title=f'Информация о роли  — {await get_nick(ctx.author)}', description=f'**Роль:** {role.mention}\n**Владелец:** <@{owner}>', color=discord.Colour(0x36393E))
                     if room:
                         room_id = await db.select_value(f'SELECT channel FROM earth_private_rooms WHERE role = {role.id}')
                         embed.add_field(name='Комната:', value=f'<#{room_id}>', inline=False)
