@@ -437,7 +437,7 @@ class PrivateRoles(commands.Cog):
                 if await db.select_value(f'SELECT role FROM earth_private_roles WHERE owner = {ctx.author.id}') is None:
                     if cash >= 5000:
                         embed = discord.Embed(title=f'Покупка личной роли — {await get_nick(ctx.author)}',
-                        description=f'**Название:** `{name}`\n**Цвет:** `{colour}` \nВаш текущий баланс: {cash} {COINS}\nВаш баланс после покупки: {cash - 5000} {COINS}')
+                        description=f'**Название:** `{name}`\n**Цвет:** `{colour}` \nВаш текущий баланс: {cash} {COINS}\nВаш баланс после покупки: {cash - 5000}')
                         embed.set_footer(text='Вы сможете изменять название и цвет роли после покупки')
                         embed.set_thumbnail(url=ctx.author.avatar_url)
                         message = await ctx.send(embed=embed)
