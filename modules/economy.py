@@ -39,7 +39,7 @@ class Economy(commands.Cog):
         if ctx.channel.id != 856931259258372146 and ctx.channel.id != 857658033122836510:
             reward = random.randint(20, 100)
             await db.execute_table(f'UPDATE earth_users SET cash = cash + {reward} WHERE member = {ctx.author.id}')
-            embed = discord.Embed(description=f'{ctx.author.mention}, вы забрали награду в размере {reward} {COINS}. Возвращайтесь за новой через 12 часов')
+            embed = discord.Embed(title=f'Ежедневная награда — {await get_nick(ctx.author)}', description=f'{ctx.author.mention}, вы **забрали** награду в размере **{reward}** {COINS}. Возвращайтесь за новой через **12 часов**')
             embed.set_thumbnail(url=ctx.author.avatar_url)
             await ctx.send(embed=embed)
 
@@ -50,9 +50,9 @@ class Economy(commands.Cog):
                 hours = round(error.retry_after // 3600)
                 minutes = round((error.retry_after - hours * 3600) // 60)
                 if hours > 0:
-                    embed = discord.Embed(description=f'{ctx.author.mention}, вы уже забрали ежедневную награду. Возвращайтесь через {hours} часов {minutes} минут')
+                    embed = discord.Embed(title=f'Ежедневная награда — {await get_nick(ctx.author)}', description=f'{ctx.author.mention}, вы **уже забрали** ежедневную награду. Возвращайтесь через **{hours} часов {minutes} минут**')
                 else:
-                    embed = discord.Embed(description=f'{ctx.author.mention}, вы уже забрали ежедневную награду. Возвращайтесь через {minutes} минут')
+                    embed = discord.Embed(title=f'Ежедневная награда — {await get_nick(ctx.author)}', description=f'{ctx.author.mention}, вы **уже** забрали ежедневную награду. Возвращайтесь через **{minutes} минут**')
                 embed.set_thumbnail(url=ctx.author.avatar_url)
                 await ctx.send(embed=embed)
 

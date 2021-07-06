@@ -46,6 +46,58 @@ class PrivateRoles(commands.Cog):
                 embed.set_thumbnail(url=ctx.author.avatar_url)
                 await ctx.send(embed=embed)
 
+    @commands.command(aliases=['оплатитьроль', 'payrole'])
+    @commands.cooldown(1, 5, BucketType.member)
+    async def __payrole(self, ctx):
+        await ctx.message.delete()
+        if ctx.channel.id != 856931259258372146 and ctx.channel.id != 857658033122836510:
+            role_id = await db.select_value(f'SELECT role FROM earth_private_roles WHERE owner = {ctx.author.id}')
+            if role_id is not None:
+                role = discord.utils.get(ctx.guild.roles, id=role_id)
+                embed = discord.Embed(title=f'Оплатить роль — {await get_nick(ctx.author)}', description=f'Вы дейстивтельно хотите оплатить роль {role.mention} на **30 дней**? Вы заплатите **1500** {COINS}')
+                embed.set_thumbnail(url=ctx.author.avatar_url)
+                message = await ctx.send(embed=embed)
+                await message.add_reaction('✅')
+                await message.add_reaction('❌')
+
+                def check(reaction, user):
+                    return user.id == ctx.author.id
+
+                try:
+                    reaction, user = await bot.wait_for('reaction_add', timeout=30.0, check=check)
+
+                except asyncio.TimeoutError:
+                    embed = discord.Embed(title=f'Оплатить роль — {await get_nick(ctx.author)}', description='Окно было закрыто из-за неактивности')
+                    embed.set_thumbnail(url=ctx.author.avatar_url)
+                    await message.clear_reactions()
+                    await message.edit(embed=embed)
+                else:
+                    if str(reaction.emoji) == '✅':
+                        if await db.select_value(f'SELECT cash FROM earth_users WHERE member = {ctx.author.id}') >= 1500:
+                            paided_str = await db.select_value(f'SELECT paided FROM earth_private_roles WHERE owner = {ctx.author.id}')
+                            paided = datetime.date(year=int(paided_str[0:4]), month=int(paided_str[4:6]), day=int(paided_str[6:8]))
+                            paided = paided + timedelta(days=30)
+                            ends = list(str(paided))
+                            ends.remove('-')
+                            ends.remove('-')
+                            end = ''.join(ends)
+                            await db.execute_table(f'UPDATE earth_private_roles SET paided = {end} WHERE role = {role_id}')
+                            await db.execute_table(f'UPDATE earth_users SET cash = cash - 1500 WHERE member = {ctx.author.id}')
+                            embed = discord.Embed(title=f'Оплатить роль — {await get_nick(ctx.author)}', description=f'{ctx.author.mention}, вы успешно **оплатили** вашу роль {role.mention} и заплатили **1500** {COINS}!')
+                            embed.set_thumbnail(url=ctx.author.avatar_url)
+                            await message.clear_reactions()
+                            await message.edit(embed=embed)
+                        else:
+                            embed = discord.Embed(title=f'Оплатить роль — {await get_nick(ctx.author)}', description=f'{ctx.author.mention}, у вас нет **1500** {COINS} чтобы оплатить роль!')
+                            embed.set_thumbnail(url=ctx.author.avatar_url)
+                            await message.clear_reactions()
+                            await message.edit(embed=embed)
+                    elif str(reaction.emoji) == '❌':
+                        embed = discord.Embed(title=f'Оплатить роль — {await get_nick(ctx.author)}', description=f'{ctx.author.mention}, вы **отменили** оплату')
+                        embed.set_thumbnail(url=ctx.author.avatar_url)
+                        await message.clear_reactions()
+                        await message.edit(embed=embed)
+
     @commands.command(aliases=['цвет', 'colour'])
     @commands.cooldown(1, 5, BucketType.member)
     async def __colour(self, ctx, colour: discord.Colour = None):
