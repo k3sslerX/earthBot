@@ -34,7 +34,7 @@ class Base(commands.Cog):
                         owner = await db.select_value(f'SELECT owner FROM earth_private_rooms WHERE role = {role.id}')
                     embed = discord.Embed(title=f'Информация о роли  — {await get_nick(ctx.author)}', description=f'**Роль:** {role.mention}\n**Владелец:** <@{owner}>', color=discord.Colour(0x36393E))
                     if room:
-                        room_id = await db.select_value(f'SELECT channel FROM earth_private_rooms WHERE role = {role.id}')
+                        room_id = await db.select_value(f'SELECT voice_channel FROM earth_private_rooms WHERE role = {role.id}')
                         embed.add_field(name='Комната:', value=f'<#{room_id}>', inline=False)
                     else:
                         embed.add_field(name='Комната:', value=f'```Отсутствует```', inline=False)
@@ -44,10 +44,10 @@ class Base(commands.Cog):
                             inrole += 1
                     embed.add_field(name='Участники:', value=f'```{inrole}```')
                     if private:
-                        paided_str = await db.select_value(f'SELECT paided FROM earth_private_roles WHERE owner = {ctx.author.id}')
+                        paided_str = await db.select_value(f'SELECT paided FROM earth_private_rooms WHERE owner = {owner}')
                         paided = datetime.date(year=int(paided_str[0:4]), month=int(paided_str[4:6]), day=int(paided_str[6:8]))
                     else:
-                        paided_str = await db.select_value(f'SELECT paided FROM earth_private_rooms WHERE owner = {ctx.author.id}')
+                        paided_str = await db.select_value(f'SELECT paided FROM earth_private_rooms WHERE owner = {owner}')
                         paided = datetime.date(year=int(paided_str[0:4]), month=int(paided_str[4:6]), day=int(paided_str[6:8]))
                     embed.add_field(name='Оплачена до:', value=f'```{paided}```')
                     if private:
@@ -59,6 +59,8 @@ class Base(commands.Cog):
                             embed.add_field(name='Продаётся', value='```Нет```')
                     embed.set_thumbnail(url=ctx.author.avatar_url)
                     await ctx.send(embed=embed)
+                else:
+                    embed = discord.Embed(title=f'Информация о роли  — {await get_nick(ctx.author)}', description=f'{ctx.author.mention}, данная роль **не является** личной!', color=discord.Colour(0x36393E))
 
 def setup(Bot):
     Bot.add_cog(Base(Bot))

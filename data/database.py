@@ -69,7 +69,7 @@ class Database:
         return await self.execute(sql, execute=True)
 
     async def create_rooms_table(self):
-        sql = 'CREATE TABLE IF NOT EXISTS earth_private_rooms (channel BIGINT, role BIGINT, paided TEXT, owner BIGINT)'
+        sql = 'CREATE TABLE IF NOT EXISTS earth_private_rooms (voice_channel BIGINT, text_channel BIGINT, role BIGINT, paided TEXT, owner BIGINT)'
         return await self.execute(sql, execute=True)
 
 db = Database()

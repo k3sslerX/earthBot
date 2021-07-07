@@ -36,13 +36,12 @@ class PrivateRoles(commands.Cog):
                 paided = datetime.date(year=int(paided_str[0:4]), month=int(paided_str[4:6]), day=int(paided_str[6:8]))
                 embed = discord.Embed(description=f'**Информация о личной роли — {await get_nick(ctx.author)}**\n{role.mention}', color=discord.Colour(0x36393E))
                 embed.set_thumbnail(url=ctx.author.avatar_url)
-                embed.add_field(name='Название:', value=f'```{role}```', inline=False)
-                embed.add_field(name='ID:', value=f'```{role.id}```')
-                embed.add_field(name='Оплачена до:', value=f'```{paided}```', inline=False)
-                embed.add_field(name='Пользователи с вашей ролью:', value=f'```{inrole} members```', inline=False)
+                embed.add_field(name='ID:', value=f'```{role.id}```', inline=False)
+                embed.add_field(name='Оплачена до:', value=f'```{paided}```')
+                embed.add_field(name='Пользователи с вашей ролью:', value=f'```{inrole}```')
                 await ctx.send(embed=embed)
             else:
-                embed = discord.Embed(description=f"{ctx.author.mention}, У вас нет личной роли. Используйте !создать роль чтобы создать её")
+                embed = discord.Embed(description=f"{ctx.author.mention}, У вас нет личной роли. Используйте !создать роль чтобы создать её", color=discord.Colour(0x36393E))
                 embed.set_thumbnail(url=ctx.author.avatar_url)
                 await ctx.send(embed=embed)
 
@@ -142,7 +141,19 @@ class PrivateRoles(commands.Cog):
         await ctx.message.delete()
         if ctx.channel.id != 856931259258372146 and ctx.channel.id != 857658033122836510:
             role_id = await db.select_value(f'SELECT role FROM earth_private_roles WHERE owner = {ctx.author.id}')
-            if role_id is not None and name is not None:
+            if role_id is None:
+                embed = discord.Embed(description=f"{ctx.author.mention}, У вас нет личной роли. Используйте !создатьроль чтобы создать её", color=discord.Colour(0x36393E))
+                embed.set_thumbnail(url=ctx.author.avatar_url)
+                await ctx.send(embed=embed)
+            elif name is None:
+                embed = discord.Embed(description=f"{ctx.author.mention}, укажите новое название роли! Максимальная длинна названия - 32 символа", color=discord.Colour(0x36393E))
+                embed.set_thumbnail(url=ctx.author.avatar_url)
+                await ctx.send(embed=embed)
+            elif len(list(name)) > 32:
+                embed = discord.Embed(title=f'Ошибка! — {await get_nick(ctx.author)}', description=f'Максимальная длина названия роли - **32 символа!**', color=discord.Colour(0x36393E))
+                embed.set_thumbnail(url=ctx.author.avatar_url)
+                await ctx.send(embed=embed)
+            else:
                 role = discord.utils.get(ctx.guild.roles, id=role_id)
                 embed = discord.Embed(title=f'Подтвердите изменения — {await get_nick(ctx.author)}', description=f'**Текущее название:** __{role.name}__\n**Новое назвние:** __{name}__\nВы заплатите: **200** {COINS}', color=discord.Colour(0x36393E))
                 embed.set_thumbnail(url=ctx.author.avatar_url)
@@ -482,6 +493,10 @@ class PrivateRoles(commands.Cog):
             if colour is None or name is None:
                 embed = discord.Embed(title='Что-то пошло не так! Попробуйте использовать эту команду так:',
                 description=f'`!создатьроль #COLOUR *name*`\n\n**Пример:**\n`!создатьроль #ff0000 крутая роль!`', color=discord.Colour(0x36393E))
+                embed.set_thumbnail(url=ctx.author.avatar_url)
+                await ctx.send(embed=embed)
+            elif len(list(name)) > 32:
+                embed = discord.Embed(title=f'Ошибка! — {await get_nick(ctx.author)}', description=f'Максимальная длина названия роли - **32 символа!**', color=discord.Colour(0x36393E))
                 embed.set_thumbnail(url=ctx.author.avatar_url)
                 await ctx.send(embed=embed)
             else:
