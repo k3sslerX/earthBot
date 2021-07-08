@@ -225,6 +225,7 @@ class PrivateRooms(commands.Cog):
                         else:
                             await db.execute_table(f'UPDATE earth_users SET cash = cash - 500 WHERE member = {ctx.author.id}')
                             await role.edit(name=name)
+                            name = '・' + name
                             await text_channel.edit(name=name)
                             await voice_channel.edit(name=name)
                             embed = discord.Embed(title=f'Подтвердите изменения — {await get_nick(ctx.author)}', description=f'{ctx.author.mention}, вы успешно изменили название вашей комнаты! Новое название: __{name}__\nПревью: {role.mention}', color=discord.Colour(0x36393E))
@@ -286,6 +287,7 @@ class PrivateRooms(commands.Cog):
                                 position = support.position + 1
                                 role = await ctx.guild.create_role(name=name, colour=colour)
                                 await role.edit(position=position)
+                                name = '・' + name
                                 category = discord.utils.get(ctx.guild.categories, id=862212109034192918)
                                 permissions = {
                                     ctx.guild.default_role: discord.PermissionOverwrite(connect=False),

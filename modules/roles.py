@@ -97,9 +97,9 @@ class PrivateRoles(commands.Cog):
                         await message.clear_reactions()
                         await message.edit(embed=embed)
 
-    @commands.command(aliases=['цвет', 'colour'])
+    @commands.command(aliases=['цветроли', 'rolecolour'])
     @commands.cooldown(1, 5, BucketType.member)
-    async def __colour(self, ctx, colour: discord.Colour = None):
+    async def __rolecolour(self, ctx, colour: discord.Colour = None):
         await ctx.message.delete()
         if ctx.channel.id != 856931259258372146 and ctx.channel.id != 857658033122836510:
             role_id = await db.select_value(f'SELECT role FROM earth_private_roles WHERE owner = {ctx.author.id}')
@@ -135,9 +135,9 @@ class PrivateRoles(commands.Cog):
                         await message.clear_reactions()
                         await message.edit(embed=embed)
 
-    @commands.command(aliases=['название', 'name'])
+    @commands.command(aliases=['названиероли', 'rolename'])
     @commands.cooldown(1, 5, BucketType.member)
-    async def __name(self, ctx, *, name: str = None):
+    async def __rolename(self, ctx, *, name: str = None):
         await ctx.message.delete()
         if ctx.channel.id != 856931259258372146 and ctx.channel.id != 857658033122836510:
             role_id = await db.select_value(f'SELECT role FROM earth_private_roles WHERE owner = {ctx.author.id}')
@@ -274,7 +274,7 @@ class PrivateRoles(commands.Cog):
                 lists -= 1
             for i in range(lists):
                 embed.append(discord.Embed(title=f'Магазин ролей — {await get_nick(ctx.author)}', color=discord.Colour(0x36393E)))
-                embed[i].set_thumbnail(url=ctx.guild.icon_url)
+                embed[i].set_thumbnail(url='https://cdn.discordapp.com/attachments/859153448309096458/862281679292071966/icons8--96.png')
                 embed[i].set_footer(text=f'Страница {i + 1}/{lists}')
             for i in range(len(roles)):
                 role = discord.utils.get(ctx.guild.roles, id=roles[i])
@@ -415,6 +415,13 @@ class PrivateRoles(commands.Cog):
                                     embed.set_thumbnail(url=ctx.author.avatar_url)
                                     await message.clear_reactions()
                                     await message.edit(embed=embed)
+                                    owner = await bot.fetch_user(owners[number - 1])
+                                    embed = discord.Embed(title='Вашу роль купили!', 
+                                    description=f'Отправитель: {ctx.author.mention} — {ctx.author}\n`ID: {ctx.author.id}`', color=discord.Colour(0x36393E))
+                                    embed.add_field(name='Получено:', value=f'```{round(prices[number - 1] / 100 * 75 )} коинов```')
+                                    embed.add_field(name='Баланс:', value=f'```{await db.select_value("SELECT cash FROM earth_users WHERE member = {}".format(owner.id))}```')
+                                    embed.set_thumbnail(url='https://media.discordapp.net/attachments/606564810255106210/862284446244667422/icons8---96.png?width=77&height=77')
+                                    await owner.send(embed=embed)
                                 elif str(reaction.emoji) == '❌':
                                     embed = discord.Embed(title='Покупка роли', description=f'{ctx.author.mention}, вы отменили покупку!', color=discord.Colour(0x36393E))
                                     embed.set_thumbnail(url=ctx.author.avatar_url)

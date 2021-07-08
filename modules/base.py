@@ -14,6 +14,18 @@ class Base(commands.Cog):
     async def on_ready(self):
         print('Base commands connected!')
 
+    @commands.command(aliases=['аватар', 'avatar'])
+    async def __avatar(self, ctx, member: discord.Member = None):
+        await ctx.message.delete()
+        if ctx.channel.id != 856931259258372146 and ctx.channel.id != 857658033122836510:
+            if member is None:
+                member = ctx.author
+                embed = discord.Embed(type='image', title=f'Аватарка — {await get_nick(ctx.author)}', description=f'{ctx.author.mention}, ниже показана **ваша** аватарка', color=discord.Colour(0x36393E))
+            else:
+                embed = discord.Embed(type='image', title=f'Аватарка — {await get_nick(ctx.author)}', description=f'{ctx.author.mention}, ниже показана аватарка **пользователя** {member.mention}', color=discord.Colour(0x36393E))
+            embed.set_image(url=member.avatar_url)
+            await ctx.send(embed=embed)
+
     @commands.command(aliases=['inforole', 'инфороль'])
     async def __inforole(self, ctx, role: discord.Role = None):
         await ctx.message.delete()
@@ -44,7 +56,7 @@ class Base(commands.Cog):
                             inrole += 1
                     embed.add_field(name='Участники:', value=f'```{inrole}```')
                     if private:
-                        paided_str = await db.select_value(f'SELECT paided FROM earth_private_rooms WHERE owner = {owner}')
+                        paided_str = await db.select_value(f'SELECT paided FROM earth_private_roles WHERE owner = {owner}')
                         paided = datetime.date(year=int(paided_str[0:4]), month=int(paided_str[4:6]), day=int(paided_str[6:8]))
                     else:
                         paided_str = await db.select_value(f'SELECT paided FROM earth_private_rooms WHERE owner = {owner}')
