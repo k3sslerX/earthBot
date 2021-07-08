@@ -61,10 +61,21 @@ class Economy(commands.Cog):
 
     @commands.command(aliases=['give'])
     @commands.has_role(857609646915059712)
-    async def __give(self, ctx, member: discord.Member = None, amount: int = None):
+    async def __give(self, ctx, member: discord.Member = None, amount: int = None, *, reason: str = None):
         if member is not None and amount is not None:
+            await ctx.message.delete()
+            channel = discord.utils.get(ctx.guild.channels, id=857607120224124959)
             await db.execute_table(f'UPDATE earth_users SET cash = cash + {amount} WHERE member = {member.id}')
-            await ctx.send(f'{amount} {COINS} были выданы пользователю {member}')
+            embed = discord.Embed(title=f'Выдача монет', color=discord.Colour(0x36393E))
+            embed.set_thumbnail(url='https://media.discordapp.net/attachments/606564810255106210/862273876478132224/icons8--96_2.png?width=77&height=77')
+            embed.add_field(name='Кто выдал:', value=f'{ctx.author.mention} — {ctx.author}', inline=False)
+            embed.add_field(name='Кому выданы:', value=f'{member.mention} — {member}', inline=False)
+            embed.add_field(name='Сколько выдано:', value=f'```{amount} монет```')
+            if reason is not None:
+                embed.add_field(name='Причина выдачи:', value=f'```{reason}```', inline=False)
+            else:
+                embed.add_field(name='Причина выдачи:', value=f'```Причина не указана```', inline=False)
+            await channel.send(embed=embed)
 
     @commands.command(aliases=['stones'])
     @commands.has_role(857609646915059712)

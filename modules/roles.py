@@ -382,7 +382,7 @@ class PrivateRoles(commands.Cog):
                             role = discord.utils.get(ctx.guild.roles, id=roles[number - 1])
                             cash = await db.select_value(f'SELECT cash FROM earth_users WHERE member = {ctx.author.id}')
                             embed = discord.Embed(title='Покупка роли',
-                            description=f'Вы хотите приобрести: {role.mention}\nВаш текущий баланс: {cash} {COINS}\nВаш баланс после покупки: {cash - prices[number - 1]} {COINS}', color=discord.Colour(0x36393E))
+                            description=f'Вы хотите приобрести: {role.mention}\nВаш текущий баланс: __{cash}__ {COINS}\nВаш баланс после покупки: __{cash - prices[number - 1]}__ {COINS}', color=discord.Colour(0x36393E))
                             embed.set_thumbnail(url=ctx.author.avatar_url)
                             message = await ctx.send(embed=embed)
                             await message.add_reaction('✅')
@@ -511,7 +511,7 @@ class PrivateRoles(commands.Cog):
                 if await db.select_value(f'SELECT role FROM earth_private_roles WHERE owner = {ctx.author.id}') is None:
                     if cash >= 5000:
                         embed = discord.Embed(title=f'Покупка личной роли — {await get_nick(ctx.author)}',
-                        description=f'**Название:** `{name}`\n**Цвет:** `{colour}` \nВаш текущий баланс: {cash} {COINS}\nВаш баланс после покупки: {cash - 5000}', color=discord.Colour(0x36393E))
+                        description=f'**Название:** `{name}`\n**Цвет:** `{colour}` \nВаш текущий баланс: __{cash}__ {COINS}\nВаш баланс после покупки: __{cash - 5000}__', color=discord.Colour(0x36393E))
                         embed.set_footer(text='Вы сможете изменять название и цвет роли после покупки')
                         embed.set_thumbnail(url=ctx.author.avatar_url)
                         message = await ctx.send(embed=embed)

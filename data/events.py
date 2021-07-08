@@ -23,6 +23,11 @@ class Events(commands.Cog):
         print('Bot is ready!')
 
     @commands.Cog.listener()
+    async def on_member_join(member):
+        if await db.select_value(f"SELECT cash FROM earth_users WHERE member = {member.id}") is None:
+            await db.execute_table(f'INSERT INTO earth_users VALUES ({member.id}, 0, 0, 0, 0, 0)')
+
+    @commands.Cog.listener()
     async def on_message(self, message):
         if message.guild is not None:
             if message.guild.id == 607467399536705576:
