@@ -39,9 +39,9 @@ class Economy(commands.Cog):
     @commands.cooldown(1, 43200, BucketType.member)
     async def __daily(self, ctx):
         await ctx.message.delete()
+        reward = random.randint(20, 100)
+        await db.execute_table(f'UPDATE earth_users SET cash = cash + {reward} WHERE member = {ctx.author.id}')
         if ctx.channel.id != 856931259258372146 and ctx.channel.id != 857658033122836510:
-            reward = random.randint(20, 100)
-            await db.execute_table(f'UPDATE earth_users SET cash = cash + {reward} WHERE member = {ctx.author.id}')
             embed = discord.Embed(title=f'Ежедневная награда — {await get_nick(ctx.author)}', color=discord.Colour(0x36393E))
             embed.add_field(name='• Ваша награда:', value=f'```{reward} коинов```')
             embed.set_footer(text='Возвращайтесь через 12 часов', icon_url='https://media.discordapp.net/attachments/606564810255106210/862273961253142538/icons8--96_1.png?width=77&height=77')
@@ -142,7 +142,7 @@ class Economy(commands.Cog):
                 lists -= 1
             for i in range(lists):
                 embeds.append(discord.Embed(title=f'История переводов — {await get_nick(member)}', description=f'**Всего: {len(amounts)}**', color=discord.Colour(0x36393E)))
-                embeds[i].set_thumbnail(url='https://media.discordapp.net/attachments/606564810255106210/862365617532043274/icons8--96_1.png?width=77&height=77')
+                embeds[i].set_thumbnail(url='https://cdn.discordapp.com/attachments/859153448309096458/863040949685190656/icons8-----96.png')
                 embeds[i].set_footer(text=f'Страница {i + 1}/{lists}')
             page = 0
             for i in range(len(members)):

@@ -18,6 +18,36 @@ class PrivateRooms(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         print('Private Rooms connected!')
+        while True:
+            date = datetime.date.today()
+            all_values = await db.select_list('SELECT voice_channel, text_channel, role, paided, owner FROM earth_private_rooms')
+            roles = []
+            ends = []
+            owners = []
+            voices = []
+            texts = []
+            for i in all_values:
+                roles.append(i['role'])
+                ends.append(i['paided'])
+                owners.append(i['owner'])
+                voices.append(i['voice_channel'])
+                texts.append(i['text_channel'])
+            for i in range(len(roles)):
+                end = datetime.date(year=int(ends[i][0:4]), month=int(ends[i][4:6]), day=int(ends[i][6:8]))
+                if date > end:
+                    guild = await bot.fetch_guild(607467399536705576)
+                    deleted_role = discord.utils.get(guild.roles, id=roles[i])
+                    deleted_text = discord.utils.get(guild.text_channels, id=texts[i])
+                    deleted_voice = discord.utils.get(guild.voice_channels, id=voices[i])
+                    await db.execute_table(f'DELETE FROM earth_private_rooms WHERE role = {deleted_role.id}')
+                    owner = await bot.fetch_user(owners[i])
+                    embed = discord.Embed(title=f'Ваша комната была удалена — {owner.name}', description=f'Ваша комната {deleted_role} была удалена!', color=discord.Colour(0x36393E))
+                    embed.set_thumbnail(url='https://cdn.discordapp.com/attachments/859153448309096458/863041118300274688/icons8----96.png')
+                    await owner.send(embed=embed)
+                    await deleted_role.delete()
+                    await deleted_text.delete()
+                    await deleted_voice.delete()
+            await asyncio.sleep(3600)
 
     @commands.command(aliases=['моякомната', 'myroom'])
     @commands.cooldown(1, 5, BucketType.member)

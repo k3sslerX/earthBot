@@ -19,6 +19,44 @@ class PrivateRoles(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         print('Private Roles connected!')
+        while True:
+            date = datetime.date.today()
+            all_values = await db.select_list('SELECT role, paided, owner FROM earth_private_roles')
+            roles = []
+            ends = []
+            owners = []
+            for i in all_values:
+                roles.append(i['role'])
+                ends.append(i['paided'])
+                owners.append(i['owner'])
+            for i in range(len(roles)):
+                end = datetime.date(year=int(ends[i][0:4]), month=int(ends[i][4:6]), day=int(ends[i][6:8]))
+                if date > end:
+                    guild = await bot.fetch_guild(607467399536705576)
+                    deleted_role = discord.utils.get(guild.roles, id=roles[i])
+                    await db.execute_table(f'DELETE FROM earth_private_roles WHERE role = {deleted_role.id}')
+                    owner = await bot.fetch_user(owners[i])
+                    embed = discord.Embed(title=f'Ваша роль была удалена — {owner.name}', description=f'Ваша роль {deleted_role} была удалена!', color=discord.Colour(0x36393E))
+                    embed.set_thumbnail(url='https://cdn.discordapp.com/attachments/859153448309096458/863041118300274688/icons8----96.png')
+                    await owner.send(embed=embed)
+                    await deleted_role.delete()
+            all_values = await db.select_list('SELECT role, purchased, member FROM earth_purchases')
+            roles = []
+            ends = []
+            owners = []
+            for i in all_values:
+                roles.append(i['role'])
+                ends.append(i['purchased'])
+                owners.append(i['member'])
+            for i in range(len(roles)):
+                end = datetime.date(year=int(ends[i][0:4]), month=int(ends[i][4:6]), day=int(ends[i][6:8]))
+                if date > end:
+                    guild = await bot.fetch_guild(607467399536705576)
+                    member = await guild.fetch_member(owners[i])
+                    deleted_role = discord.utils.get(guild.roles, id=roles[i])
+                    await db.execute_table(f'DELETE FROM earth_purchases WHERE role = {deleted_role.id} AND member = {owners[i]}')
+                    await member.remove_roles(deleted_role)
+            await asyncio.sleep(3600)
 
     @commands.command(aliases=['мояроль'])
     @commands.cooldown(1, 5, BucketType.member)
@@ -289,8 +327,8 @@ class PrivateRoles(commands.Cog):
                 await page.start()
                 await message.delete()
             else:
-                embed = discord.Embed(title=f'Магазин ролей', description=f'Магазин пуст!')
-                embed.set_thumbnail(url=ctx.guild.icon_url)
+                embed = discord.Embed(title=f'Магазин ролей', description=f'Магазин пуст!', color=discord.Colour(0x36393E))
+                embed.set_thumbnail(url='https://cdn.discordapp.com/attachments/859153448309096458/863041118300274688/icons8----96.png')
                 await ctx.send(embed=embed)
 
     @commands.command(aliases=['withdraw', 'убрать'])
@@ -491,6 +529,96 @@ class PrivateRoles(commands.Cog):
                 embed = discord.Embed(description=f"{ctx.author.mention}, У вас нет личной роли. Используйте !создатьроль чтобы создать её", color=discord.Colour(0x36393E))
                 embed.set_thumbnail(url=ctx.author.avatar_url)
                 await ctx.send(embed=embed)
+
+    @commands.command(aliases=['спрятать', 'hide'])
+    @commands.cooldown(1, 5, BucketType.member)
+    async def __hide(self, ctx, role: discord.Role = None):
+        await ctx.message.delete()
+        if ctx.channel.id != 856931259258372146 and ctx.channel.id != 857658033122836510:
+            if role is not None:
+                privates_record = await db.select_list('SELECT role FROM earth_private_roles')
+                privates = []
+                for i in privates_record:
+                    privates.append(i['role'])
+                privates.append(858254889338667009)
+                if role.id in privates:
+                    if role in ctx.author.roles:
+                        if await db.select_value(f'SELECT cash FROM earth_users WHERE member = {ctx.author.id}') >= 50:
+                            await db.execute_table(f'INSERT INTO earth_inventory VALUES ({role.id}, {ctx.author.id})')
+                            await db.execute_table(f'UPDATE earth_users SET cash = cash - 50 WHERE member = {ctx.author.id}')
+                            await ctx.author.remove_roles(role)
+                            embed = discord.Embed(title=f'Спрятать роль в инвентарь — {await get_nick(ctx.author)}', description=f'Вы успешно **спрятали** роль {role.mention} в инвентарь и заплатили за это **50** {COINS}', color=discord.Colour(0x36393E))
+                            embed.set_thumbnail(url='https://cdn.discordapp.com/attachments/859153448309096458/863041118300274688/icons8----96.png')
+                            await ctx.send(embed=embed)
+                        else:
+                            embed = discord.Embed(title=f'Спрятать роль в инвентарь — {await get_nick(ctx.author)}', description=f'У вас нет **50** {COINS} чтобы **спрятать** роль в инвентарь!', color=discord.Colour(0x36393E))
+                            embed.set_thumbnail(url='https://media.discordapp.net/attachments/606564810255106210/862404190662950922/icons8---96_1.png?width=77&height=77')
+                            await ctx.send(embed=embed)
+                    else:
+                        embed = discord.Embed(title=f'Спрятать роль в инвентарь — {await get_nick(ctx.author)}', description='У вас нет данной роли!', color=discord.Colour(0x36393E))
+                        embed.set_thumbnail(url='https://media.discordapp.net/attachments/606564810255106210/862404190662950922/icons8---96_1.png?width=77&height=77')
+                        await ctx.send(embed=embed)
+                else:
+                    embed = discord.Embed(title=f'Спрятать роль в инвентарь — {await get_nick(ctx.author)}', description='Данная роль не может быть спрятана!', color=discord.Colour(0x36393E))
+                    embed.set_thumbnail(url='https://media.discordapp.net/attachments/606564810255106210/862404190662950922/icons8---96_1.png?width=77&height=77')
+                    await ctx.send(embed=embed)
+            else:
+                embed = discord.Embed(title=f'Спрятать роль в инвентарь — {await get_nick(ctx.author)}', description='**Упоминание** роли или её **ID** не обнаружены!', color=discord.Colour(0x36393E))
+                embed.set_thumbnail(url='https://media.discordapp.net/attachments/606564810255106210/862404190662950922/icons8---96_1.png?width=77&height=77')
+                await ctx.send(embed=embed)
+
+    @commands.command(aliases=['инвентарь', 'inventory'])
+    @commands.cooldown(1, 5, BucketType.member)
+    async def __inventory(self, ctx):
+        await ctx.message.delete()
+        if ctx.channel.id != 856931259258372146 and ctx.channel.id != 857658033122836510:
+            roles_record = await db.select_list(f'SELECT role FROM earth_inventory WHERE member = {ctx.author.id}')
+            roles = []
+            embed = []
+            page = 0
+            descriptions = []
+            for i in roles_record:
+                roles.append(i['role'])
+            lists = len(roles) // 5 + 1
+            if len(roles) % 5 == 0:
+                lists -= 1
+            for i in range(lists):
+                embed.append(discord.Embed(title=f'Инвентарь ролей — {await get_nick(ctx.author)}', color=discord.Colour(0x36393E)))
+                embed[i].set_thumbnail(url='https://cdn.discordapp.com/attachments/859153448309096458/863041118300274688/icons8----96.png')
+                embed[i].set_footer(text=f'Страница {i + 1}/{lists}')
+                descriptions.append('')
+            for i in range(len(roles)):
+                role = discord.utils.get(ctx.guild.roles, id=roles[i])
+                if i < (5 * (page + 1)):
+                    descriptions[page] += f'**{i + 1})** {role.mention}\n'
+                else:
+                    page += 1
+                    descriptions[page] += f'**{i + 1})** {role.mention}\n'
+            for i in range(len(embed)):
+                embed[i].description = descriptions[i]
+            if len(embed) >= 1:
+                message = await ctx.send(embed=embed[0])
+                page = Paginator(bot, message, only=ctx.author, use_more=False, embeds=embed, timeout=30, footer=False, use_exit=True, exit_reaction='❌')
+                await page.start()
+                await message.delete()
+            else:
+                embed = discord.Embed(title=f'Инвентарь ролей — {await get_nick(ctx.author)}', description=f'Инвентарь пуст!', color=discord.Colour(0x36393E))
+                embed.set_thumbnail(url='https://cdn.discordapp.com/attachments/859153448309096458/863041118300274688/icons8----96.png')
+                await ctx.send(embed=embed)
+
+    @commands.command(aliases=['достать', 'get'])
+    @commands.cooldown(1, 5, BucketType.member)
+    async def __get(self, ctx, role: discord.Role = None):
+        await ctx.message.delete()
+        if ctx.channel.id != 856931259258372146 and ctx.channel.id != 857658033122836510:
+            if role is not None:
+                ininv = await db.select_value(f'SELECT member FROM earth_inventory WHERE role = {role.id}')
+                if ininv is not None:
+                    await db.execute_table(f'DELETE FROM earth_inventory WHERE role = {role.id} AND member = {ctx.author.id}')
+                    await ctx.author.add_roles(role)
+                    embed = discord.Embed(title=f'Достать роль из инвентаря — {await get_nick(ctx.author)}', description=f'Вы успешно **достали** роль {role.mention} из инвентаря и заплатили за это **0** {COINS}', color=discord.Colour(0x36393E))
+                    embed.set_thumbnail(url='https://cdn.discordapp.com/attachments/859153448309096458/863041118300274688/icons8----96.png')
+                    await ctx.send(embed=embed)
     
     @commands.command(aliases=['createrole', 'создатьроль'])
     @commands.cooldown(1, 5, BucketType.member)
