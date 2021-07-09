@@ -16,6 +16,7 @@ class Events(commands.Cog):
         await db.create_purchases_table()
         await db.create_inventory_table()
         await db.create_rooms_table()
+        await db.create_transactions_table()
         for guild in bot.guilds:
             for member in guild.members:
                 if await db.select_value(f'SELECT cash FROM earth_users WHERE member = {member.id}') is None:

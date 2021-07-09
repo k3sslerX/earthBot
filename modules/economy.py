@@ -8,6 +8,9 @@ from data.config import staff, COINS
 import asyncio
 from discord.ext.commands.cooldowns import BucketType
 import random
+import datetime
+from datetime import timedelta
+from Cybernator import Paginator
 
 class Economy(commands.Cog):
 
@@ -84,6 +87,91 @@ class Economy(commands.Cog):
             await db.execute_table(f'UPDATE earth_users SET stones = stones + {amount} WHERE member = {member.id}')
             await ctx.send(f'{amount} камней были выданы пользователю {member}')
 
+    @commands.command(aliases=['top', 'топ'])
+    async def __top(self, ctx):
+        await ctx.message.delete()
+        if ctx.channel.id != 856931259258372146 and ctx.channel.id != 857658033122836510:
+            members_record = await db.select_list('SELECT member, cash FROM earth_users ORDER BY cash DESC')
+            member = []
+            cash = []
+            for i in members_record:
+                member.append(i['member'])
+                cash.append(i['cash'])
+            embeds = []
+            lists = len(member) // 10 + 1
+            if len(member) % 10 == 0:
+                lists -= 1
+            for i in range(lists):
+                embeds.append(discord.Embed(title=f'Топ пользователей — {await get_nick(ctx.author)}', color=discord.Colour(0x36393E)))
+                embeds[i].set_thumbnail(url='https://media.discordapp.net/attachments/606564810255106210/862273876478132224/icons8--96_2.png?width=77&height=77')
+                embeds[i].set_footer(text=f'Страница {i + 1}/{lists}')
+            page = 0
+            for i in range(len(member)):
+                if i < (10 * (page + 1)):
+                    embeds[page].add_field(name=f'ᅠ', value=f'{i + 1}) <@{member[i]}>\n**Баланс:** __{cash[i]}__ {COINS}', inline=False)
+                else:
+                    page += 1
+                    embeds[page].add_field(name=f'ᅠ', value=f'{i + 1} <@{member[i]}>\n**Баланс:** __{cash[i]}__ {COINS}', inline=False)
+                if member[i] == ctx.author.id:
+                    for j in range(len(embeds)):
+                        embeds[j].description = f'**Ваша позиция в топе: {i + 1}**'
+            message = await ctx.send(embed=embeds[0])
+            page = Paginator(bot, message, only=ctx.author, use_more=False, embeds=embeds, timeout=30, footer=False, use_exit=True, exit_reaction='❌')
+            await page.start()
+            await message.delete()
+
+    @commands.command(aliases=['переводы', 'transactions'])
+    async def __transactions(self, ctx, member: discord.Member = None):
+        await ctx.message.delete()
+        if ctx.channel.id != 856931259258372146 and ctx.channel.id != 857658033122836510:
+            if member is None:
+                member = ctx.author
+            gets_record = await db.select_list(f'SELECT member, amount, sender, date FROM earth_transactions WHERE member = {member.id} OR sender = {member.id} ORDER BY id DESC')
+            members = []
+            amounts = []
+            senders = []
+            dates = []
+            for i in gets_record:
+                members.append(i['member'])
+                amounts.append(i['amount'])
+                senders.append(i['sender'])
+                dates.append(i['date'])
+            embeds = []
+            lists = len(members) // 3 + 1
+            if len(members) % 3 == 0:
+                lists -= 1
+            for i in range(lists):
+                embeds.append(discord.Embed(title=f'История переводов — {await get_nick(member)}', description=f'**Всего: {len(amounts)}**', color=discord.Colour(0x36393E)))
+                embeds[i].set_thumbnail(url='https://media.discordapp.net/attachments/606564810255106210/862365617532043274/icons8--96_1.png?width=77&height=77')
+                embeds[i].set_footer(text=f'Страница {i + 1}/{lists}')
+            page = 0
+            for i in range(len(members)):
+                if members[i] == member.id:
+                    sender = await bot.fetch_user(senders[i])
+                    date = datetime.date(year=int(str(dates[i])[0:4]), month=int(str(dates[i])[4:6]), day=int(str(dates[i])[6:8]))
+                    if i < (3 * (page + 1)):
+                        embeds[page].add_field(name=f'{i + 1}) Входящий перевод', value=f'Сумма: __{amounts[i]}__ {COINS}\nОтправитель: {sender.mention} — {sender}\nДата: __{date}__', inline=False)
+                    else:
+                        page += 1
+                        embeds[page].add_field(name=f'{i + 1}) Входящий перевод', value=f'Сумма: __{amounts[i]}__ {COINS}\nОтправитель: {sender.mention} — {sender}\nДата: __{date}__', inline=False)
+                elif senders[i] == member.id:
+                    new_member = await bot.fetch_user(members[i])
+                    date = datetime.date(year=int(str(dates[i])[0:4]), month=int(str(dates[i])[4:6]), day=int(str(dates[i])[6:8]))
+                    if i < (3 * (page + 1)):
+                        embeds[page].add_field(name=f'{i + 1}) Исходящий перевод', value=f'Сумма: __{amounts[i]}__ {COINS}\nПолучатель: {new_member.mention} — {new_member}\nДата: __{date}__', inline=False)
+                    else:
+                        page += 1
+                        embeds[page].add_field(name=f'{i + 1}) Исходящий перевод', value=f'Сумма: __{amounts[i]}__ {COINS}\nПолучатель: {new_member.mention} — {new_member}\nДата: __{date}__', inline=False)
+            if len(embeds) > 0:
+                message = await ctx.send(embed=embeds[0])
+                page = Paginator(bot, message, only=ctx.author, use_more=False, embeds=embeds, timeout=30, footer=False)
+                await page.start()
+                await message.clear_reactions()
+            else:
+                embed = discord.Embed(title=f'История переводов — {await get_nick(ctx.author)}', description='Ваша история пуста!', color=discord.Colour(0x36393E))
+                embed.set_thumbnail(url='https://media.discordapp.net/attachments/606564810255106210/862404190662950922/icons8---96_1.png?width=77&height=77')
+                await ctx.send(embed=embed)
+
     @commands.command(aliases=['send', 'передать'])
     async def __send(self, ctx, member: discord.Member = None, amount: int = None):
         await ctx.message.delete()
@@ -119,8 +207,18 @@ class Economy(commands.Cog):
                         await message.clear_reactions()
                     else:
                         if str(reaction.emoji) == '✅':
+                            date_date = datetime.date.today()
+                            end = str(date_date)
+                            ends = list(end)
+                            ends.remove('-')
+                            ends.remove('-')
+                            date = ''.join(ends)
                             await db.execute_table(f'UPDATE earth_users SET cash = cash + {new_amount} WHERE member = {member.id}')
                             await db.execute_table(f'UPDATE earth_users SET cash = cash - {new_amount} WHERE member = {ctx.author.id}')
+                            id_list = await db.select_list(f'SELECT * FROM earth_transactions')
+                            id = len(id_list)
+                            id += 1
+                            await db.execute_table(f'INSERT INTO earth_transactions VALUES ({id}, {member.id}, {new_amount}, {ctx.author.id}, {date})')
                             if not zero_comission:
                                 embed = discord.Embed(title=f'Перевод — {ctx.author}', description=f'{ctx.author.mention} успешно перевёл __{new_amount}__ {COINS} пользователю {member.mention} (включая комиссию 5%)', color=discord.Colour(0x36393E))
                                 embed.set_thumbnail(url=ctx.author.avatar_url)
