@@ -35,6 +35,8 @@ class PrivateRoles(commands.Cog):
                     guild = await bot.fetch_guild(607467399536705576)
                     deleted_role = discord.utils.get(guild.roles, id=roles[i])
                     await db.execute_table(f'DELETE FROM earth_private_roles WHERE role = {deleted_role.id}')
+                    await db.execute_table(f'DELETE FROM earth_purchases WHERE role = {deleted_role.id}')
+                    await db.execute_table(f'DELETE FROM earth_inventory WHERE role = {deleted_role.id}')
                     owner = await bot.fetch_user(owners[i])
                     embed = discord.Embed(title=f'Ваша роль была удалена — {owner.name}', description=f'Ваша роль {deleted_role} была удалена!', color=discord.Colour(0x36393E))
                     embed.set_thumbnail(url='https://cdn.discordapp.com/attachments/859153448309096458/863041118300274688/icons8----96.png')
