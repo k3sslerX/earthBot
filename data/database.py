@@ -76,4 +76,8 @@ class Database:
         sql = 'CREATE TABLE IF NOT EXISTS earth_transactions (id INT, member BIGINT, amount INT, sender BIGINT, date TEXT)'
         return await self.execute(sql, execute=True)
 
+    async def create_rooms_hours_table(self):
+        sql = 'CREATE TABLE IF NOT EXISTS earth_rooms (room BIGINT, hours INT, minutes INT)'
+        return await self.execute(sql, execute=True)
+
 db = Database()

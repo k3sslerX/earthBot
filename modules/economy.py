@@ -35,6 +35,20 @@ class Economy(commands.Cog):
             embed.set_thumbnail(url=member.avatar_url)
             await ctx.send(embed=embed)
 
+    @commands.command(aliases=['online', 'онлайн'])
+    async def __online(self, ctx, member: discord.Member = None):
+        await ctx.message.delete()
+        if member is None:
+            member = ctx.author
+        if ctx.channel.id != 856931259258372146 and ctx.channel.id != 857658033122836510:
+            hours = await db.select_value(f'SELECT hours FROM earth_users WHERE member = {member.id}')
+            minutes = await db.select_value(f'SELECT minutes FROM earth_users WHERE member = {member.id}')
+            embed = discord.Embed(title=f'Голосовой онлайн пользователя — {await get_nick(member)}', color=discord.Colour(0x36393E))
+            embed.add_field(name='• Часов:', value=f'```{hours}```')
+            embed.add_field(name='• Минут:', value=f'```{minutes}```')
+            embed.set_thumbnail(url=member.avatar_url)
+            await ctx.send(embed=embed)
+
     @commands.command(aliases=['награда', 'daily'])
     @commands.cooldown(1, 43200, BucketType.member)
     async def __daily(self, ctx):
@@ -61,6 +75,38 @@ class Economy(commands.Cog):
                 else:
                     embed.set_footer(text=f'Возвращайтесь через {minutes} минут', icon_url='https://media.discordapp.net/attachments/606564810255106210/862273961253142538/icons8--96_1.png?width=77&height=77')
                 await ctx.send(embed=embed)
+
+    @commands.command(aliases=['reward', 'наградить'])
+    @commands.has_role(862638189284818974)
+    async def __reward(self, ctx, member: discord.Member = None, amount: int = None):
+        await ctx.message.delete()
+        if member is not None and amount is not None:
+            if amount > 20 and amount < 500:
+                await db.execute_table(f'UPDATE earth_users SET cash = cash + {amount} WHERE member = {member.id}')
+                await db.execute_table(f'UPDATE earth_users SET cash = cash + {round(amount / 100 * 30)} WHERE member = {ctx.author.id}')
+                channel = discord.utils.get(ctx.guild.text_channels, id=857607120224124959)
+                embed = discord.Embed(title=f'Выдача награды', color=discord.Colour(0x36393E))
+                embed.set_thumbnail(url='https://media.discordapp.net/attachments/606564810255106210/862273876478132224/icons8--96_2.png?width=77&height=77')
+                embed.add_field(name='Кто выдал:', value=f'{ctx.author.mention} — {ctx.author}', inline=False)
+                embed.add_field(name='Кому выданы:', value=f'{member.mention} — {member}', inline=False)
+                embed.add_field(name='Сколько выдано:', value=f'```{amount} монет```')
+                await channel.send(embed=embed)
+                embed = discord.Embed(title='Вы получили награду!', 
+                description=f'Отправитель: {ctx.author.mention} — {ctx.author}\n`ID: {ctx.author.id}`', color=discord.Colour(0x36393E))
+                embed.add_field(name='Получено:', value=f'```{amount} коинов```')
+                embed.add_field(name='Баланс:', value=f'```{await db.select_value("SELECT cash FROM earth_users WHERE member = {}".format(member.id))} коинов```')
+                embed.set_thumbnail(url='https://media.discordapp.net/attachments/606564810255106210/862281419552325633/icons8---96.png?width=77&height=77')
+                await member.send(embed=embed)
+                mes = await ctx.send(f'{ctx.author.mention}, :ok_hand:')
+                await asyncio.sleep(5)
+                await mes.delete()
+            else:
+                channel = discord.utils.get(ctx.guild.text_channels, id=857607120224124959)
+                embed = discord.Embed(title=f'Попытка неверной выдачи награды!', color=discord.Colour(0x36393E))
+                embed.set_thumbnail(url='https://media.discordapp.net/attachments/606564810255106210/862273876478132224/icons8--96_2.png?width=77&height=77')
+                embed.add_field(name='Кто пытался:', value=f'{ctx.author.mention} — {ctx.author}', inline=False)
+                embed.add_field(name='Сколько:', value=f'```{amount} монет```')
+                await channel.send(embed=embed)
 
     @commands.command(aliases=['give'])
     @commands.has_role(857609646915059712)
@@ -115,6 +161,39 @@ class Economy(commands.Cog):
                 if member[i] == ctx.author.id:
                     for j in range(len(embeds)):
                         embeds[j].description = f'**Ваша позиция в топе: {i + 1}**'
+            message = await ctx.send(embed=embeds[0])
+            page = Paginator(bot, message, only=ctx.author, use_more=False, embeds=embeds, timeout=30, footer=False, use_exit=True, exit_reaction='❌')
+            await page.start()
+            await message.delete()
+
+    @commands.command(aliases=['topchannels', 'топкомнат'])
+    async def __topchannels(self, ctx):
+        await ctx.message.delete()
+        if ctx.channel.id != 856931259258372146 and ctx.channel.id != 857658033122836510:
+            rooms_record = await db.select_list('SELECT room, hours, minutes FROM earth_rooms ORDER BY hours DESC')
+            room = []
+            hours = []
+            minutes = []
+            for i in rooms_record:
+                room.append(i['room'])
+                hours.append(i['hours'])
+                minutes.append(i['minutes'])
+            embeds = []
+            lists = len(room) // 10 + 1
+            if len(room) % 10 == 0:
+                lists -= 1
+            for i in range(lists):
+                embeds.append(discord.Embed(title=f'Топ комнат за всё время — {await get_nick(ctx.author)}', color=discord.Colour(0x36393E)))
+                embeds[i].set_thumbnail(url='https://media.discordapp.net/attachments/606564810255106210/862273876478132224/icons8--96_2.png?width=77&height=77')
+                embeds[i].set_footer(text=f'Страница {i + 1}/{lists}')
+            page = 0
+            for i in range(len(room)):
+                channel = discord.utils.get(ctx.guild.voice_channels, id=room[i])
+                if i < (10 * (page + 1)):
+                    embeds[page].add_field(name=f'{i + 1}) {channel.name}', value=f'**{hours[i]}** часов **{minutes[i]}** минут', inline=False)
+                else:
+                    page += 1
+                    embeds[page].add_field(name=f'{i + 1}) {channel.name}', value=f'**{hours[i]}** часов **{minutes[i]}** минут', inline=False)
             message = await ctx.send(embed=embeds[0])
             page = Paginator(bot, message, only=ctx.author, use_more=False, embeds=embeds, timeout=30, footer=False, use_exit=True, exit_reaction='❌')
             await page.start()
