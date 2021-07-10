@@ -1,8 +1,11 @@
+from datetime import timedelta
 from discord import channel, client
 from discord.ext import commands
 from .database import db
 from app import bot
 import asyncio
+import time
+timedict = {}
 
 class Events(commands.Cog):
 
@@ -32,21 +35,18 @@ class Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
-        if after.channel is not None:
-            channel = after.channel.id
-            while after.channel.id == channel:
-                await asyncio.sleep(60)
-                await db.execute_table(f'UPDATE earth_users SET cash = cash + 1 WHERE member = {member.id}')
-                await db.execute_table(f'UPDATE earth_users SET minutes = minutes + 1 WHERE member = {member.id}')
-                if await db.select_value(f'SELECT hours FROM earth_rooms WHERE room = {after.channel.id}') is None:
-                    await db.execute_table(f'INSERT INTO earth_rooms VALUES ({after.channel.id}, 0, 0)')
-                await db.execute_table(f'UPDATE earth_rooms SET minutes = minutes + 1 WHERE room = {after.channel.id}')
-                if await db.select_value(f'SELECT minutes FROM earth_users WHERE member = {member.id}') >= 60:
-                    await db.execute_table(f'UPDATE earth_users SET minutes = 0 WHERE member = {member.id}')
-                    await db.execute_table(f'UPDATE earth_users SET hours = hours + 1 WHERE member = {member.id}')
-                if await db.select_value(f'SELECT minutes FROM earth_rooms WHERE room = {after.channel.id}') >= 60:
-                    await db.execute_table(f'UPDATE earth_rooms SET minutes = 0 WHERE room = {after.channel.id}')
-                    await db.execute_table(f'UPDATE earth_rooms SET hours = hours + 1 WHERE room = {after.channel.id}')
+        if before.channel is None and after.channel is not None:
+            t1 = time.time()
+            timedict[member.id] = t1
+        elif before.channel is not None and after.channel is None and member.id in timedict:
+            t2 = time.time()
+            sec = t2 - timedict[member.id]
+            await db.execute_table(f'UPDATE earth_users SET cash = cash + {round(sec / 60)} WHERE member = {member.id}')
+            await db.execute_table(f'UPDATE earth_users SET minutes = minutes + {round(sec / 60)} WHERE member = {member.id}')
+            minutes = await db.select_value(f'SELECT minutes FROM earth_users WHERE member = {member.id}')
+            hours = minutes // 60
+            await db.execute_table(f'UPDATE earth_users SET hours = hours + {hours} WHERE member = {member.id}')
+            await db.execute_table(f'UPDATE earth_users SET minutes = minutes - {hours * 60} WHERE member = {member.id}')
 
     @commands.Cog.listener()
     async def on_message(self, message):
