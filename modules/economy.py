@@ -21,6 +21,17 @@ class Economy(commands.Cog):
     async def on_ready(self):
         print('Economy module connected!')
 
+    @commands.Cog.listener()
+    async def on_voice_state_update(self, member, before, after):
+        while after.channel is not None:
+            await asyncio.sleep(60)
+            if await db.select_value(f'SELECT hours FROM earth_rooms WHERE room = {after.channel.id}') is None:
+                await db.execute_table(f'INSERT INTO earth_rooms VALUES ({after.channel.id}, 0, 0)')
+            await db.execute_table(f'UPDATE earth_rooms SET minutes = minutes + 1 WHERE room = {after.channel.id}')
+            if await db.select_value(f'SELECT minutes FROM earth_rooms WHERE room = {after.channel.id}') >= 60:
+                await db.execute_table(f'UPDATE earth_rooms SET minutes = 0 WHERE room = {after.channel.id}')
+                await db.execute_table(f'UPDATE earth_rooms SET hours = hours + 1 WHERE room = {after.channel.id}')
+
     @commands.command(aliases=['$', 'баланс', 'balance'])
     async def __balance(self, ctx, member: discord.Member = None):
         await ctx.message.delete()
@@ -148,19 +159,64 @@ class Economy(commands.Cog):
             if len(member) % 10 == 0:
                 lists -= 1
             for i in range(lists):
-                embeds.append(discord.Embed(title=f'Топ пользователей — {await get_nick(ctx.author)}', color=discord.Colour(0x36393E)))
+                embeds.append(discord.Embed(title=f'Топ пользователей по монетам — {await get_nick(ctx.author)}', color=discord.Colour(0x36393E)))
                 embeds[i].set_thumbnail(url='https://media.discordapp.net/attachments/606564810255106210/862273876478132224/icons8--96_2.png?width=77&height=77')
                 embeds[i].set_footer(text=f'Страница {i + 1}/{lists}')
             page = 0
+            counter = 1
             for i in range(len(member)):
-                if i < (10 * (page + 1)):
-                    embeds[page].add_field(name=f'ᅠ', value=f'{i + 1}) <@{member[i]}>\n**Баланс:** __{cash[i]}__ {COINS}', inline=False)
-                else:
-                    page += 1
-                    embeds[page].add_field(name=f'ᅠ', value=f'{i + 1} <@{member[i]}>\n**Баланс:** __{cash[i]}__ {COINS}', inline=False)
-                if member[i] == ctx.author.id:
-                    for j in range(len(embeds)):
-                        embeds[j].description = f'**Ваша позиция в топе: {i + 1}**'
+                memberz = discord.utils.get(ctx.guild.members, id=member[i])
+                if memberz is not None:
+                    if i < (10 * (page + 1)):
+                        embeds[page].add_field(name=f'{counter}) {await get_nick(memberz)}', value=f'**Баланс:** __{cash[i]}__ {COINS}', inline=False)
+                        counter += 1
+                    else:
+                        page += 1
+                        embeds[page].add_field(name=f'{counter}) {await get_nick(memberz)}', value=f'**Баланс:** __{cash[i]}__ {COINS}', inline=False)
+                        counter += 1
+                    if member[i] == ctx.author.id:
+                        for j in range(len(embeds)):
+                            embeds[j].description = f'**Ваша позиция в топе: {counter - 1}**'
+            message = await ctx.send(embed=embeds[0])
+            page = Paginator(bot, message, only=ctx.author, use_more=False, embeds=embeds, timeout=30, footer=False, use_exit=True, exit_reaction='❌')
+            await page.start()
+            await message.delete()
+
+    @commands.command(aliases=['topvoice', 'топвойс'])
+    async def __topvoice(self, ctx):
+        await ctx.message.delete()
+        if ctx.channel.id != 856931259258372146 and ctx.channel.id != 857658033122836510:
+            members_record = await db.select_list('SELECT member, hours, minutes FROM earth_users ORDER BY hours, minutes DESC')
+            member = []
+            hours = []
+            minutes = []
+            for i in members_record:
+                member.append(i['member'])
+                hours.append(i['hours'])
+                minutes.append(i['minutes'])
+            embeds = []
+            lists = len(member) // 10 + 1
+            if len(member) % 10 == 0:
+                lists -= 1
+            for i in range(lists):
+                embeds.append(discord.Embed(title=f'Топ пользователей по онлайну — {await get_nick(ctx.author)}', color=discord.Colour(0x36393E)))
+                embeds[i].set_thumbnail(url='https://media.discordapp.net/attachments/606564810255106210/862273876478132224/icons8--96_2.png?width=77&height=77')
+                embeds[i].set_footer(text=f'Страница {i + 1}/{lists}')
+            page = 0
+            counter = 1
+            for i in range(len(member)):
+                memberz = discord.utils.get(ctx.guild.members, id=member[i])
+                if memberz is not None:
+                    if i < (10 * (page + 1)):
+                        embeds[page].add_field(name=f'{counter}) {await get_nick(memberz)}', value=f'**{hours[i]}** часов **{minutes[i]}** минут', inline=False)
+                        counter += 1
+                    else:
+                        page += 1
+                        embeds[page].add_field(name=f'{counter}) {await get_nick(memberz)}', value=f'**{hours[i]}** часов **{minutes[i]}** минут', inline=False)
+                        counter += 1
+                    if member[i] == ctx.author.id:
+                        for j in range(len(embeds)):
+                            embeds[j].description = f'**Ваша позиция в топе: {counter - 1}**'
             message = await ctx.send(embed=embeds[0])
             page = Paginator(bot, message, only=ctx.author, use_more=False, embeds=embeds, timeout=30, footer=False, use_exit=True, exit_reaction='❌')
             await page.start()
