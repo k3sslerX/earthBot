@@ -140,12 +140,46 @@ class Gambling(commands.Cog):
     async def coinflip_error(self, ctx, error):
         if isinstance(error, commands.CommandOnCooldown):
             await ctx.message.delete()
-            embed = discord.Embed(title=f'Бросить монетку — {await get_nick(ctx.author)}', description=f'{ctx.author.mention}, вы **уже бросали** монетку. Попробуйте ещё раз через **{round(error.retry_after)} секунд!**')
+            embed = discord.Embed(title=f'Бросить монетку — {await get_nick(ctx.author)}', description=f'{ctx.author.mention}, вы **уже бросали** монетку. Попробуйте ещё раз через **{round(error.retry_after)} секунд!**', color=discord.Colour(0x36393E))
             embed.set_thumbnail(url='https://media.discordapp.net/attachments/606564810255106210/862273961253142538/icons8--96_1.png?width=77&height=77')
             message = await ctx.send(embed=embed)
             await asyncio.sleep(5)
             await message.delete()
 
+    @commands.command()
+    @commands.has_any_role(857609908106559529, 857609646915059712)
+    async def jp(self, ctx):
+        embed = discord.Embed(title='Джекпот', description='Ожидание ставок...', color=discord.Colour(0x36393E))
+        embed.set_thumbnail(url='https://media.discordapp.net/attachments/606564810255106210/862365617532043274/icons8--96_1.png?width=77&height=77')
+        await ctx.send(embed=embed)
+        embed = discord.Embed(title='Сделать ставку', description='Чтобы сделать ставку нажмите на реакцию ниже', color=discord.Colour(0x36393E))
+        embed.set_thumbnail(url='https://media.discordapp.net/attachments/606564810255106210/862365617532043274/icons8--96_1.png?width=77&height=77')
+        message = await ctx.send(embed=embed)
+        await message.add_reaction('💰')
+
+    @commands.Cog.listener()
+    async def on_raw_reaction_add(self, payload):
+        guild = bot.get_guild(payload.guild_id)
+        channel = discord.utils.get(guild.channels, id=payload.channel_id)
+        message = await channel.fetch_message(payload.message_id)
+        reaction = discord.utils.get(message.reactions, emoji=payload.emoji.name)
+        member = payload.member
+        if message.id == 864743540978483230:
+            await reaction.remove(member)
+            msg = await member.send(embed=discord.Embed(title=f'Ставка на джекпот — {await get_nick(member)}', description=f'Отправьте сообщение со ставкой\nПример:\n```1000```', color=discord.Colour(0x36393E)))
+            def check(m):
+                return m.content.isdigit() and m.channel == msg.channel
+            
+            try:
+                mes = await bot.wait_for('message', check=check, timeout=10.0)
+            except asyncio.TimeoutError:
+                await msg.delete()
+            else:
+                bet = int(mes.content)
+                if await db.select_value(f'SELECT cash FROM earth_users WHERE member = {member.id}') >= bet:
+                    await member.send(embed=discord.Embed(title=f'Ставка принята — {await get_nick(member)}', description=f'Вы успешно сделали ставку в размере {bet} {COINS}', color=discord.Colour(0x36393E)))
+                else:
+                    await member.send(embed=discord.Embed(title=f'Ставка отклонена — {await get_nick(member)}', description=f'У вас недостаточно {COINS}!', color=discord.Colour(0x36393E)))
 
 def setup(Bot):
     Bot.add_cog(Gambling(Bot))

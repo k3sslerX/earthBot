@@ -46,17 +46,18 @@ class Economy(commands.Cog):
             embed.set_thumbnail(url=member.avatar_url)
             await ctx.send(embed=embed)
 
-    @commands.command(aliases=['online', 'онлайн'])
-    async def __online(self, ctx, member: discord.Member = None):
+    @commands.command(aliases=['statistcs', 'статистика'])
+    async def __statistics(self, ctx, member: discord.Member = None):
         await ctx.message.delete()
         if member is None:
             member = ctx.author
         if ctx.channel.id != 856931259258372146 and ctx.channel.id != 857658033122836510:
             hours = await db.select_value(f'SELECT hours FROM earth_users WHERE member = {member.id}')
             minutes = await db.select_value(f'SELECT minutes FROM earth_users WHERE member = {member.id}')
-            embed = discord.Embed(title=f'Голосовой онлайн пользователя — {await get_nick(member)}', color=discord.Colour(0x36393E))
-            embed.add_field(name='• Часов:', value=f'```{hours}```')
-            embed.add_field(name='• Минут:', value=f'```{minutes}```')
+            messages = await db.select_value(f'SELECT messages FROM earth_users WHERE member = {member.id}')
+            embed = discord.Embed(title=f'Статистика пользователя — {await get_nick(member)}', color=discord.Colour(0x36393E))
+            embed.add_field(name='• Голосовой онлайн', value=f'```{hours} часов {minutes} минут```')
+            embed.add_field(name='• Сообщений:', value=f'```{messages}```')
             embed.set_thumbnail(url=member.avatar_url)
             await ctx.send(embed=embed)
 
@@ -186,7 +187,7 @@ class Economy(commands.Cog):
     async def __topvoice(self, ctx):
         await ctx.message.delete()
         if ctx.channel.id != 856931259258372146 and ctx.channel.id != 857658033122836510:
-            members_record = await db.select_list('SELECT member, hours, minutes FROM earth_users ORDER BY hours, minutes DESC')
+            members_record = await db.select_list('SELECT member, hours, minutes FROM earth_users ORDER BY hours DESC, minutes DESC')
             member = []
             hours = []
             minutes = []

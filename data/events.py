@@ -1,5 +1,6 @@
 from datetime import timedelta
 from discord import channel, client
+import discord
 from discord.ext import commands
 from .database import db
 from app import bot
@@ -7,7 +8,7 @@ import asyncio
 import time
 timedict = {}
 
-class Events(commands.Cog):
+class EventRefrence(commands.Cog):
 
     def __init__(self, Bot):
         self.bot = Bot
@@ -22,6 +23,8 @@ class Events(commands.Cog):
         await db.create_rooms_table()
         await db.create_transactions_table()
         await db.create_rooms_hours_table()
+        await db.create_jackpot_table()
+        await db.create_jp_bets_table()
         for guild in bot.guilds:
             for member in guild.members:
                 if await db.select_value(f'SELECT cash FROM earth_users WHERE member = {member.id}') is None:
@@ -41,7 +44,7 @@ class Events(commands.Cog):
         elif before.channel is not None and after.channel is None and member.id in timedict:
             t2 = time.time()
             sec = t2 - timedict[member.id]
-            await db.execute_table(f'UPDATE earth_users SET cash = cash + {round(sec / 60)} WHERE member = {member.id}')
+            await db.execute_table(f'UPDATE earth_users SET cash = cash + {round(sec / 60) // 5} WHERE member = {member.id}')
             await db.execute_table(f'UPDATE earth_users SET minutes = minutes + {round(sec / 60)} WHERE member = {member.id}')
             minutes = await db.select_value(f'SELECT minutes FROM earth_users WHERE member = {member.id}')
             hours = minutes // 60
@@ -55,4 +58,4 @@ class Events(commands.Cog):
                 await db.execute_table(f'UPDATE earth_users SET messages = messages + 1 WHERE member = {message.author.id}')
 
 def setup(Bot):
-    Bot.add_cog(Events(Bot))
+    Bot.add_cog(EventRefrence(Bot))
