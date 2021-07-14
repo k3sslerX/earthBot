@@ -81,7 +81,7 @@ class Database:
         return await self.execute(sql, execute=True)
 
     async def create_jackpot_table(self):
-        sql = 'CREATE TABLE IF NOT EXISTS earth_jackpot (total INT, started INT, members INT)'
+        sql = 'CREATE TABLE IF NOT EXISTS earth_jackpot (total INT, started INT)'
         return await self.execute(sql, execute=True)
 
     async def create_jp_bets_table(self):
