@@ -26,7 +26,7 @@ class EventRefrence(commands.Cog):
         await db.create_jackpot_table()
         await db.create_jp_bets_table()
         if await db.select_value(f'SELECT started FROM earth_jackpot') is None:
-            await db.execute_table(f'INSERT INTO earth_jackpot VALUES (0, 0)')
+            await db.execute_table(f'INSERT INTO earth_jackpot VALUES (0, 1)')
         for guild in bot.guilds:
             for member in guild.members:
                 if await db.select_value(f'SELECT cash FROM earth_users WHERE member = {member.id}') is None:
