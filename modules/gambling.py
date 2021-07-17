@@ -7,6 +7,7 @@ import asyncio
 from data.database import db
 from app import bot
 import random
+injp = {}
 
 
 async def jackpot_check():
@@ -34,17 +35,23 @@ async def jackpot_check():
             winner = members[i]
             chance = round(bets[i] / total * 100, 1)
             first = False
-    embed = discord.Embed(title='Джекпот', description=f'Игра завершена!\nПобедитель: <@{winner}>\nШанс победы: {chance} %\nПриз: {round(total / 100 * 90)} {COINS}', color=discord.Colour(0x36393E))
+    if len(members) > 1:
+        embed = discord.Embed(title='Джекпот', description=f'Игра завершена!\nПобедитель: <@{winner}>\nШанс победы: {chance} %\nПриз: {round(total / 100 * 90)} {COINS}', color=discord.Colour(0x36393E))
+        await db.execute_table(f'UPDATE earth_users SET cash = cash + {round(total / 100 * 90)} WHERE member = {winner}')
+    else:
+        embed = discord.Embed(title='Джекпот', description=f'Игра завершена!\nПобедитель: <@{winner}>\nШанс победы: {chance} %\nПриз: {total} {COINS}', color=discord.Colour(0x36393E))
+        await db.execute_table(f'UPDATE earth_users SET cash = cash + {round(total / 100 * 90)} WHERE member = {winner}')
     embed.set_thumbnail(url='https://media.discordapp.net/attachments/606564810255106210/862367490607415346/icons8-----96.png?width=77&height=77')
     await message.edit(embed=embed)
     await asyncio.sleep(10)
     embed = discord.Embed(title='Джекпот', description='Ожидание ставок...', color=discord.Colour(0x36393E))
     embed.set_thumbnail(url='https://media.discordapp.net/attachments/606564810255106210/862365617532043274/icons8--96_1.png?width=77&height=77')
     await message.edit(embed=embed)
-    await db.execute_table(f'UPDATE earth_users SET cash = cash + {round(total / 100 * 90)} WHERE member = {winner}')
     await db.execute_table(f'UPDATE earth_jackpot SET started = 1')
     await db.execute_table(f'UPDATE earth_jackpot SET total = 0')
     await db.execute_table(f'DELETE FROM earth_jp_bets')
+    for member in members:
+        injp.pop(member, None)
 
 
 async def jackpot_start():
@@ -216,7 +223,15 @@ class Gambling(commands.Cog):
         message = await channel.fetch_message(payload.message_id)
         reaction = discord.utils.get(message.reactions, emoji=payload.emoji.name)
         member = payload.member
+        access = 0
         if message.id == 864743540978483230:
+            await reaction.remove(member)
+        if member.id in injp:
+            pass
+        else:
+            access = 1
+            injp[member.id] = 1
+        if message.id == 864743540978483230 and access == 1:
             await reaction.remove(member)
             msg = await member.send(embed=discord.Embed(title=f'Ставка на джекпот — {await get_nick(member)}', description=f'Отправьте сообщение со ставкой\nПример:\n```1000```', color=discord.Colour(0x36393E)))
             def check(m):
@@ -262,8 +277,11 @@ class Gambling(commands.Cog):
                             await db.execute_table(f'UPDATE earth_jackpot SET started = 0')
                             await member.send(embed=discord.Embed(title=f'Ставка принята — {await get_nick(member)}', description=f'Вы успешно повысили вашу ставку до {new_bet} {COINS}', color=discord.Colour(0x36393E)))
                             await jackpot_start()
+                    else:
+                        await member.send(embed=discord.Embed(title=f'Ставка отклонена — {await get_nick(member)}', description=f'У вас недостаточно {COINS}!', color=discord.Colour(0x36393E)))
                 else:
                     await member.send(embed=discord.Embed(title=f'Ошибка! — {await get_nick(member)}', description=f'Попробуйте ещё раз позже!', color=discord.Colour(0x36393E)))
+            injp.pop[member.id]
 
 def setup(Bot):
     Bot.add_cog(Gambling(Bot))

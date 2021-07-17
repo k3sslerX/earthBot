@@ -539,11 +539,15 @@ class PrivateRoles(commands.Cog):
         if ctx.channel.id != 856931259258372146 and ctx.channel.id != 857658033122836510:
             if role is not None:
                 privates_record = await db.select_list('SELECT role FROM earth_private_roles')
+                rooms_record = await db.select_list('SELECT role FROM earth_private_rooms')
                 privates = []
+                rooms = []
                 for i in privates_record:
                     privates.append(i['role'])
+                for i in rooms_record:
+                    rooms.append(i['role'])
                 privates.append(858254889338667009)
-                if role.id in privates:
+                if role.id in privates or role.id in rooms:
                     if role in ctx.author.roles:
                         if await db.select_value(f'SELECT cash FROM earth_users WHERE member = {ctx.author.id}') >= 50:
                             await db.execute_table(f'INSERT INTO earth_inventory VALUES ({role.id}, {ctx.author.id})')

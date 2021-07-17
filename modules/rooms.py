@@ -87,7 +87,7 @@ class PrivateRooms(commands.Cog):
                 if await db.select_value(f'SELECT role FROM earth_private_rooms WHERE owner = {ctx.author.id}') is not None:
                     role_id = await db.select_value(f'SELECT role FROM earth_private_rooms WHERE owner = {ctx.author.id}')
                     role = discord.utils.get(ctx.guild.roles, id=role_id)
-                    embed = discord.Embed(title=f'Приглашению в комнату — {await get_nick(ctx.author)}', description=f'{member.mention}, вас пригласили в комнату __{role.name}__', color=discord.Colour(0x36393E))
+                    embed = discord.Embed(title=f'Приглашению в комнату — {await get_nick(ctx.author)}', description=f'{member.mention}, вас пригласили в комнату {role.mention}', color=discord.Colour(0x36393E))
                     embed.set_thumbnail(url=ctx.author.avatar_url)
                     message = await ctx.send(embed=embed)
                     await message.add_reaction('✅')
@@ -105,16 +105,54 @@ class PrivateRooms(commands.Cog):
                         await message.clear_reactions()
                     else:
                         if str(reaction.emoji) == '✅':
-                            embed = discord.Embed(title=f'Приглашению в комнату — {await get_nick(ctx.author)}', description=f'{member.mention} принял приглашение в комнату __{role.name}__', color=discord.Colour(0x36393E))
+                            embed = discord.Embed(title=f'Приглашению в комнату — {await get_nick(ctx.author)}', description=f'{member.mention} принял приглашение в комнату {role.mention}', color=discord.Colour(0x36393E))
                             embed.set_thumbnail(url=ctx.author.avatar_url)
-                            await message.edit(embed=embed)
-                            await message.clear_reactions()
                             await member.add_roles(role)
+                            text = discord.utils.get(ctx.guild.channels, id=await db.select_value(f'SELECT text_channel FROM earth_private_rooms WHERE owner = {ctx.author.id}'))
+                            voice = discord.utils.get(ctx.guild.voice_channels, id=await db.select_value(f'SELECT voice_channel FROM earth_private_rooms WHERE owner = {ctx.author.id}'))
+                            text_overs = text.overwrites
+                            voice_overs = voice.overwrites
+                            text_overs[member] = discord.PermissionOverwrite(send_messages=True, view_channel=True)
+                            voice_overs[member] = discord.PermissionOverwrite(connect=True, view_channel=True)
+                            await text.edit(overwrites=text_overs)
+                            await voice.edit(overwrites=voice_overs)
+                            await message.edit(embed=embed)
+                            await message.clear_reactions()
                         elif str(reaction.emoji) == '❌':
-                            embed = discord.Embed(title=f'Приглашению в комнату — {await get_nick(ctx.author)}', description=f'{member.mention} отклонил приглашение в комнату __{role.name}__', color=discord.Colour(0x36393E))
+                            embed = discord.Embed(title=f'Приглашению в комнату — {await get_nick(ctx.author)}', description=f'{member.mention} отклонил приглашение в комнату {role.mention}', color=discord.Colour(0x36393E))
                             embed.set_thumbnail(url=ctx.author.avatar_url)
                             await message.edit(embed=embed)
                             await message.clear_reactions()
+
+    @commands.command(aliases=['выгнать', 'kick'])
+    @commands.cooldown(1, 5, BucketType.member)
+    async def __kick(self, ctx, member: discord.Member = None):
+        await ctx.message.delete()
+        if ctx.channel.id != 856931259258372146 and ctx.channel.id != 857658033122836510:
+            role_id = await db.select_value(f'SELECT role FROM earth_private_rooms WHERE owner = {ctx.author.id}')
+            if role_id is not None:
+                inv_record = await db.select_list(f'SELECT role FROM earth_inventory WHERE member = {member.id}')
+                inv = []
+                for i in inv_record:
+                    inv.append(i['role'])
+                if role_id in inv or role_id in member.roles:
+                    if role_id in inv:
+                        await db.execute_table(f'DELETE FROM earth_inventory WHERE role = {role_id} AND member = {member.id}')
+                    elif role_id in member.roles:
+                        await member.remove_roles(discord.utils.get(ctx.guild.roles, id=role_id))
+                    text = discord.utils.get(ctx.guild.channels, id=await db.select_value(f'SELECT text_channel FROM earth_private_rooms WHERE owner = {ctx.author.id}'))
+                    voice = discord.utils.get(ctx.guild.voice_channels, id=await db.select_value(f'SELECT voice_channel FROM earth_private_rooms WHERE owner = {ctx.author.id}'))
+                    text_overs = text.overwrites
+                    voice_overs = voice.overwrites
+                    text_overs.pop(member)
+                    voice_overs.pop(member)
+                    embed = discord.Embed(title=f'Кик из комнаты — {await get_nick(ctx.author)}', description=f'{ctx.author.mention}, вы успешно выгнали пользователя {member.mention} из вашей комнаты!', color=discord.Colour(0x36393E))
+                    embed.set_thumbnail(url='https://media.discordapp.net/attachments/859153448309096458/865883893592227840/icons8--96.png')
+                    await ctx.send(embed=embed)
+                else:
+                    embed = discord.Embed(title=f'Кик из комнаты — {await get_nick(ctx.author)}', description=f'{ctx.author.mention}, данный пользователь не является участинком вашей комнаты!', color=discord.Colour(0x36393E))
+                    embed.set_thumbnail(url='https://media.discordapp.net/attachments/606564810255106210/862404190662950922/icons8---96_1.png?width=77&height=77')
+                    await ctx.send(embed=embed)
 
     @commands.command(aliases=['оплатитькомнату', 'payroom'])
     @commands.cooldown(1, 5, BucketType.member)

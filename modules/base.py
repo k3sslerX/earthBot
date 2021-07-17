@@ -4,6 +4,7 @@ from discord.ext import commands
 from data.database import db
 from data.config import get_nick
 import datetime
+from discord.ext.commands.cooldowns import BucketType
 
 class Base(commands.Cog):
 
@@ -15,6 +16,7 @@ class Base(commands.Cog):
         print('Base commands connected!')
 
     @commands.command(aliases=['аватар', 'avatar'])
+    @commands.cooldown(1, 3, BucketType.member)
     async def __avatar(self, ctx, member: discord.Member = None):
         await ctx.message.delete()
         if ctx.channel.id != 856931259258372146 and ctx.channel.id != 857658033122836510:
@@ -27,6 +29,7 @@ class Base(commands.Cog):
             await ctx.send(embed=embed)
 
     @commands.command(aliases=['inforole', 'инфороль'])
+    @commands.cooldown(1, 3, BucketType.member)
     async def __inforole(self, ctx, role: discord.Role = None):
         await ctx.message.delete()
         if ctx.channel.id != 856931259258372146 and ctx.channel.id != 857658033122836510:

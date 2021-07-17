@@ -24,15 +24,19 @@ class Economy(commands.Cog):
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
         while after.channel is not None:
-            await asyncio.sleep(60)
-            if await db.select_value(f'SELECT hours FROM earth_rooms WHERE room = {after.channel.id}') is None:
-                await db.execute_table(f'INSERT INTO earth_rooms VALUES ({after.channel.id}, 0, 0)')
-            await db.execute_table(f'UPDATE earth_rooms SET minutes = minutes + 1 WHERE room = {after.channel.id}')
-            if await db.select_value(f'SELECT minutes FROM earth_rooms WHERE room = {after.channel.id}') >= 60:
-                await db.execute_table(f'UPDATE earth_rooms SET minutes = 0 WHERE room = {after.channel.id}')
-                await db.execute_table(f'UPDATE earth_rooms SET hours = hours + 1 WHERE room = {after.channel.id}')
+            if after.channel is not None:
+                await asyncio.sleep(60)
+                if await db.select_value(f'SELECT hours FROM earth_rooms WHERE room = {after.channel.id}') is None:
+                    await db.execute_table(f'INSERT INTO earth_rooms VALUES ({after.channel.id}, 0, 0)')
+                await db.execute_table(f'UPDATE earth_rooms SET minutes = minutes + 1 WHERE room = {after.channel.id}')
+                if await db.select_value(f'SELECT minutes FROM earth_rooms WHERE room = {after.channel.id}') >= 60:
+                    await db.execute_table(f'UPDATE earth_rooms SET minutes = 0 WHERE room = {after.channel.id}')
+                    await db.execute_table(f'UPDATE earth_rooms SET hours = hours + 1 WHERE room = {after.channel.id}')
+            else:
+                break
 
     @commands.command(aliases=['$', 'баланс', 'balance'])
+    @commands.cooldown(1, 3, BucketType.member)
     async def __balance(self, ctx, member: discord.Member = None):
         await ctx.message.delete()
         if member is None:
@@ -47,6 +51,7 @@ class Economy(commands.Cog):
             await ctx.send(embed=embed)
 
     @commands.command(aliases=['statistcs', 'статистика'])
+    @commands.cooldown(1, 3, BucketType.member)
     async def __statistics(self, ctx, member: discord.Member = None):
         await ctx.message.delete()
         if member is None:
@@ -146,6 +151,7 @@ class Economy(commands.Cog):
             await ctx.send(f'{amount} камней были выданы пользователю {member}')
 
     @commands.command(aliases=['top', 'топ'])
+    @commands.cooldown(1, 10, BucketType.member)
     async def __top(self, ctx):
         await ctx.message.delete()
         if ctx.channel.id != 856931259258372146 and ctx.channel.id != 857658033122836510:
@@ -184,6 +190,7 @@ class Economy(commands.Cog):
             await message.delete()
 
     @commands.command(aliases=['topvoice', 'топвойс'])
+    @commands.cooldown(1, 3, BucketType.member)
     async def __topvoice(self, ctx):
         await ctx.message.delete()
         if ctx.channel.id != 856931259258372146 and ctx.channel.id != 857658033122836510:
@@ -224,6 +231,7 @@ class Economy(commands.Cog):
             await message.delete()
 
     @commands.command(aliases=['topchannels', 'топкомнат'])
+    @commands.cooldown(1, 3, BucketType.member)
     async def __topchannels(self, ctx):
         await ctx.message.delete()
         if ctx.channel.id != 856931259258372146 and ctx.channel.id != 857658033122836510:
@@ -257,6 +265,7 @@ class Economy(commands.Cog):
             await message.delete()
 
     @commands.command(aliases=['переводы', 'transactions'])
+    @commands.cooldown(1, 3, BucketType.member)
     async def __transactions(self, ctx, member: discord.Member = None):
         await ctx.message.delete()
         if ctx.channel.id != 856931259258372146 and ctx.channel.id != 857658033122836510:
@@ -309,6 +318,7 @@ class Economy(commands.Cog):
                 await ctx.send(embed=embed)
 
     @commands.command(aliases=['send', 'передать'])
+    @commands.cooldown(1, 3, BucketType.member)
     async def __send(self, ctx, member: discord.Member = None, amount: int = None):
         await ctx.message.delete()
         if ctx.channel.id != 856931259258372146 and ctx.channel.id != 857658033122836510:
