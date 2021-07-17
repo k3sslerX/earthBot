@@ -58,7 +58,7 @@ async def jackpot_start():
     guild = bot.get_guild(607467399536705576)
     channel = discord.utils.get(guild.channels, id=862245367286071296)
     message = await channel.fetch_message(864743537810997329)
-    time = 30
+    time = 60
     while time > 0:
         await asyncio.sleep(5)
         time -= 5
