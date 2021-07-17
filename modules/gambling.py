@@ -14,7 +14,7 @@ async def jackpot_check():
     await db.execute_table('UPDATE earth_jackpot SET started = 2')
     guild = bot.get_guild(607467399536705576)
     channel = discord.utils.get(guild.channels, id=862245367286071296)
-    message = await channel.fetch_message(864743537810997329)
+    message = await channel.fetch_message(866032357278744586)
     bets_record = await db.select_list(f'SELECT bet, member FROM earth_jp_bets ORDER BY bet')
     bets = []
     members = []
@@ -46,6 +46,7 @@ async def jackpot_check():
     await asyncio.sleep(10)
     embed = discord.Embed(title='Джекпот', description='Ожидание ставок...', color=discord.Colour(0x36393E))
     embed.set_thumbnail(url='https://media.discordapp.net/attachments/606564810255106210/862365617532043274/icons8--96_1.png?width=77&height=77')
+    embed.set_image(url='https://images-ext-2.discordapp.net/external/pgl4wiHak7k9UXNQlefRbdyuw54ufSiBrYfwS9M3Yv4/%3Fwidth%3D388%26height%3D2/https/images-ext-2.discordapp.net/external/L6k5R6PRlCKL3rhC2QPDaKustVRcWdHnRdBvEMrDXEI/%253Fwidth%253D517%2526height%253D2/https/images-ext-2.discordapp.net/external/f3Y72RK0lUBWWYaRzecoRRQUaMiVOsU6IIqpzCXTEtw/https/images-ext-1.discordapp.net/external/0RwQbJPK5CtzRH0gM-hR91a456diC3xVX8cQtIORWpY/https/media.discordapp.net/attachments/774042908718399509/830485232695115776/1111.png?width=310&height=2')
     await message.edit(embed=embed)
     await db.execute_table(f'UPDATE earth_jackpot SET started = 1')
     await db.execute_table(f'UPDATE earth_jackpot SET total = 0')
@@ -57,7 +58,7 @@ async def jackpot_check():
 async def jackpot_start():
     guild = bot.get_guild(607467399536705576)
     channel = discord.utils.get(guild.channels, id=862245367286071296)
-    message = await channel.fetch_message(864743537810997329)
+    message = await channel.fetch_message(866032357278744586)
     time = 60
     while time > 0:
         await asyncio.sleep(5)
@@ -224,14 +225,14 @@ class Gambling(commands.Cog):
         reaction = discord.utils.get(message.reactions, emoji=payload.emoji.name)
         member = payload.member
         access = 0
-        if message.id == 864743540978483230:
+        if message.id == 866032359564771358:
             await reaction.remove(member)
         if member.id in injp:
             pass
         else:
             access = 1
             injp[member.id] = 1
-        if message.id == 864743540978483230 and access == 1:
+        if message.id == 866032359564771358 and access == 1:
             await reaction.remove(member)
             msg = await member.send(embed=discord.Embed(title=f'Ставка на джекпот — {await get_nick(member)}', description=f'Отправьте сообщение со ставкой\nПример:\n```1000```', color=discord.Colour(0x36393E)))
             def check(m):
