@@ -281,7 +281,7 @@ class Gambling(commands.Cog):
                         await member.send(embed=discord.Embed(title=f'Ставка отклонена — {await get_nick(member)}', description=f'У вас недостаточно {COINS}!', color=discord.Colour(0x36393E)))
                 else:
                     await member.send(embed=discord.Embed(title=f'Ошибка! — {await get_nick(member)}', description=f'Попробуйте ещё раз позже!', color=discord.Colour(0x36393E)))
-            injp.pop[member.id]
+            injp.pop(member.id)
 
 def setup(Bot):
     Bot.add_cog(Gambling(Bot))
