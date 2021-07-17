@@ -1,3 +1,4 @@
+import asyncio
 import discord
 from discord import colour
 from discord.ext import commands
@@ -34,7 +35,9 @@ class Base(commands.Cog):
         await ctx.message.delete()
         if ctx.channel.id != 856931259258372146 and ctx.channel.id != 857658033122836510:
             if role is None:
-                pass
+                msg = await ctx.send(embed=discord.Embed(title=f'Ошибка!  — {await get_nick(ctx.author)}', description=f'Упоминание **роли** или её ID **не найдено**', color=discord.Colour(0x36393E)))
+                await asyncio.sleep(5)
+                await msg.delete()
             else:
                 private = False
                 room = False
@@ -76,6 +79,10 @@ class Base(commands.Cog):
                     await ctx.send(embed=embed)
                 else:
                     embed = discord.Embed(title=f'Информация о роли  — {await get_nick(ctx.author)}', description=f'{ctx.author.mention}, данная роль **не является** личной!', color=discord.Colour(0x36393E))
+                    embed.set_thumbnail(url='https://media.discordapp.net/attachments/606564810255106210/862273961253142538/icons8--96_1.png?width=77&height=77')
+                    msg = await ctx.send(embed=embed)
+                    await asyncio.sleep(5)
+                    await msg.delete()
 
 def setup(Bot):
     Bot.add_cog(Base(Bot))
