@@ -6,12 +6,12 @@ async def get_nick(member: discord.Member):
     else:
         return member.nick
 
-DB_NAME = 'postgres'
-DB_USER = 'postgres'
-DB_HOST = 'localhost'
-DB_PASS = '18273645'
+DB_NAME = 'dbv7kufmb8jhtt'
+DB_USER = 'ebzentrucgntxb'
+DB_HOST = 'ec2-54-83-82-187.compute-1.amazonaws.com'
+DB_PASS = 'f0e5ddc14de4b5feceaa0c895b05a2555428865343cc4de021f2552f7bcea4fc'
 
-TOKEN = 'ODY2MDI1NTgxMTQwMjQ2NTM4.YPMjLA.o8urnZyTKwHMuJVHjeYwIxFYYwc'
+TOKEN = 'ODY2MDI1NTgxMTQwMjQ2NTM4.YPMjLA.pKYnVuk9GMGixDO2a04gRjuXKvI'
 COINS = '<:earth_coin1:862282603636457543>'
 staff = [857609646915059712, 858073863309361183, 858073863309361183, 858073863309361183, 858073863309361183]
 events = ['CSGO 5x5', 'ALIAS', 'ANIME', 'BRAWLHALLA', 'CODENAMES', 'DOTA 2 5x5', 'GARTIC PHONE', 'ROBLOX', 'ФИЛЬМ']

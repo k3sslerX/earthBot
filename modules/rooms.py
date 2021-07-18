@@ -19,6 +19,7 @@ class PrivateRooms(commands.Cog):
     async def on_ready(self):
         print('Private Rooms connected!')
         while True:
+            await asyncio.sleep(1800)
             date = datetime.date.today()
             all_values = await db.select_list('SELECT voice_channel, text_channel, role, paided, owner FROM earth_private_rooms')
             roles = []

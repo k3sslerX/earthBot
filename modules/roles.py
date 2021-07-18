@@ -20,6 +20,7 @@ class PrivateRoles(commands.Cog):
     async def on_ready(self):
         print('Private Roles connected!')
         while True:
+            await asyncio.sleep(3600)
             date = datetime.date.today()
             all_values = await db.select_list('SELECT role, paided, owner FROM earth_private_roles')
             roles = []
@@ -58,7 +59,6 @@ class PrivateRoles(commands.Cog):
                     deleted_role = discord.utils.get(guild.roles, id=roles[i])
                     await db.execute_table(f'DELETE FROM earth_purchases WHERE role = {deleted_role.id} AND member = {owners[i]}')
                     await member.remove_roles(deleted_role)
-            await asyncio.sleep(3600)
 
     @commands.command(aliases=['мояроль'])
     @commands.cooldown(1, 5, BucketType.member)
